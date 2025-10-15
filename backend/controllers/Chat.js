@@ -2,6 +2,7 @@ import UserModel from "../models/Users.js";
 import jwtUtils from "../utils/jwtUtils.js";
 import twoFAUtils from "../utils/twoFAUtils.js";
 import ChatModel from "../models/Chat.js";
+import { Op } from "sequelize";
 
 class ChatController {
     constructor() {
@@ -9,10 +10,9 @@ class ChatController {
 
     async sendMessage(req, res) {
         try {
-
             const { recipientId, message } = req.body;
             const senderId = req.user.id;
-            // berificacion de los usuarios, que existan y que no sean el mismo
+
             if (senderId === recipientId) {
                 return res.status(400).send({ status: false, message: "No puedes enviarte mensajes a ti mismo." });
             }
@@ -21,11 +21,11 @@ class ChatController {
                 return res.status(404).send({ status: false, message: "El destinatario no existe." });
             }
 
-            // Crear el mensaje en la base de datos
+            // CORRECCIÓN: Usar los nombres de columna del modelo
             const chatMessage = await ChatModel.create({
-                senderId,
-                recipientId,
-                message,
+                sender_id: senderId,
+                reciver_id: recipientId, // Corregido para coincidir con el typo en el modelo
+                message: message,
                 timestamp: new Date()
             });
 
@@ -40,11 +40,10 @@ class ChatController {
             const { message } = req.body;
             const senderId = req.user.id;
 
-            // Crear el mensaje público en la base de datos
             const chatMessage = await ChatModel.create({
-                senderId,
-                recipientId: null, // null indica que es un mensaje público
-                message,
+                sender_id: senderId, // Corregido
+                reciver_id: null,
+                message: message,
                 timestamp: new Date()
             });
 
@@ -56,13 +55,12 @@ class ChatController {
 
     async getPublicMessages(req, res) {
         try {
-            // Obtener todos los mensajes públicos (recipientId es null)
             const messages = await ChatModel.findAll({
-                where: { recipientId: null },
+                where: { reciver_id: null }, // Corregido
                 order: [['timestamp', 'ASC']]
             });
 
-            res.status(200).send({ status: true, data: messages });
+            res.status(200).send(messages);
         } catch (e) {
             res.status(500).send({ error: e.message });
         }
@@ -71,26 +69,25 @@ class ChatController {
     async getMessages(req, res) {
         try {
             const userId = req.user.id;
-            const { withUserId } = req.params;
+            // CORRECCIÓN: Usar el nombre del parámetro de la ruta
+            const { otherUserId } = req.params;
 
-            // Verificar que el usuario con el que se quiere chatear exista
-            const withUser = await UserModel.findByPk(withUserId);
+            const withUser = await UserModel.findByPk(otherUserId);
             if (!withUser) {
                 return res.status(404).send({ status: false, message: "El usuario con el que quieres chatear no existe." });
             }
 
-            // Obtener los mensajes entre los dos usuarios
             const messages = await ChatModel.findAll({
                 where: {
-                    [ChatModel.sequelize.Op.or]: [
-                        { senderId: userId, recipientId: withUserId },
-                        { senderId: withUserId, recipientId: userId }
+                    [Op.or]: [
+                        { sender_id: userId, reciver_id: otherUserId },
+                        { sender_id: otherUserId, reciver_id: userId }
                     ]
                 },
                 order: [['timestamp', 'ASC']]
             });
 
-            res.status(200).send({ status: true, data: messages });
+            res.status(200).send(messages);
         } catch (e) {
             res.status(500).send({ error: e.message });
         }

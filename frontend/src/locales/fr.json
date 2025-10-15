@@ -115,6 +115,8 @@
 	  "easy": "/assets/fr/easy_fr.png",
 	  "medium": "/assets/fr/medium_fr.png",
 	  "hard": "/assets/fr/hard_fr.png",
-	  "impossible": "/assets/fr/impossible_fr.png"
+	  "impossible": "/assets/fr/impossible_fr.png",
+	  "chat": "/assets/fr/chat_fr.png",
+      "history": "/assets/fr/history_fr.png"
 	}
 }

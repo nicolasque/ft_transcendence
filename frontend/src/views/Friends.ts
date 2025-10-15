@@ -14,10 +14,17 @@ interface FriendRequest extends User {
     friendshipId: number;
 }
 
+interface Message {
+    id: number;
+    sender_id: number;
+    reciver_id: number;
+    message: string;
+    timestamp: string;
+}
+
 export function renderFriends(appElement: HTMLElement): void
 {
-    if (!appElement)
-		return;
+    if (!appElement) return;
 
 	appElement.innerHTML = `
 	<div class="h-screen flex flex-col p-4 md:p-8 relative overflow-y-auto">
@@ -33,24 +40,35 @@ export function renderFriends(appElement: HTMLElement): void
 			</button>
 		</div>
 
-		<div class="flex-grow flex flex-col items-center w-full max-w-4xl mx-auto space-y-8">
-			<div class="w-full flex flex-col items-center">
-                <button data-collapsible="friends-container" class="collapsible-trigger relative w-[150px] h-[45px] md:w-[200px] md:h-[60px] mb-4 cursor-pointer focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
-                    <img src="${i18next.t('img.friends')}" alt="${i18next.t('friends')}" class="absolute inset-0 w-full h-full object-contain">
-                </button>
-				<div id="friends-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg shadow-cyan-400/50"></div>
+		<div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-7xl mx-auto">
+			<div class="flex flex-col space-y-8">
+				<div class="w-full flex flex-col items-center">
+					<button data-collapsible="friends-container" class="collapsible-trigger relative w-[150px] h-[45px] md:w-[200px] md:h-[60px] mb-4 cursor-pointer focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+						<img src="${i18next.t('img.friends')}" alt="${i18next.t('friends')}" class="absolute inset-0 w-full h-full object-contain">
+					</button>
+					<div id="friends-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg shadow-cyan-400/50"></div>
+				</div>
+				<div class="w-full flex flex-col items-center">
+					<button data-collapsible="requests-container" class="collapsible-trigger relative w-[200px] h-[50px] md:w-[300px] md:h-[75px] mb-4 cursor-pointer focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+						<img src="${i18next.t('img.requests')}" alt="${i18next.t('requests')}" class="absolute inset-0 w-full h-full object-contain">
+					</button>
+					<div id="requests-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg shadow-cyan-400/50"></div>
+				</div>
+				<div class="w-full flex flex-col items-center">
+					<button data-collapsible="users-container" class="collapsible-trigger relative w-[120px] h-[40px] md:w-[150px] md:h-[50px] mb-4 cursor-pointer focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+						<img src="${i18next.t('img.users')}" alt="${i18next.t('users')}" class="absolute inset-0 w-full h-full object-contain">
+					</button>
+					<div id="users-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg shadow-cyan-400/50 hidden"></div>
+				</div>
 			</div>
-			<div class="w-full flex flex-col items-center">
-                <button data-collapsible="requests-container" class="collapsible-trigger relative w-[200px] h-[50px] md:w-[300px] md:h-[75px] mb-4 cursor-pointer focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
-                    <img src="${i18next.t('img.requests')}" alt="${i18next.t('requests')}" class="absolute inset-0 w-full h-full object-contain">
-                </button>
-				<div id="requests-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg shadow-cyan-400/50"></div>
-			</div>
-			<div class="w-full flex flex-col items-center">
-                <button data-collapsible="users-container" class="collapsible-trigger relative w-[120px] h-[40px] md:w-[150px] md:h-[50px] mb-4 cursor-pointer focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
-                    <img src="${i18next.t('img.users')}" alt="${i18next.t('users')}" class="absolute inset-0 w-full h-full object-contain">
-                </button>
-				<div id="users-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg shadow-cyan-400/50 hidden"></div>
+
+			<div id="chat-column" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 flex-col shadow-lg shadow-cyan-400/50 hidden">
+				<h2 id="chat-with-username" class="text-2xl text-center text-cyan-400 font-bold mb-4"></h2>
+				<div id="chat-history" class="flex-grow overflow-y-auto mb-4 p-2 bg-gray-900 rounded h-64"></div>
+				<div class="flex">
+					<input id="chat-input" type="text" class="flex-grow bg-gray-700 p-2 rounded-l" placeholder="Escribe un mensaje...">
+					<button id="send-chat-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-r">Enviar</button>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -63,6 +81,16 @@ export function renderFriends(appElement: HTMLElement): void
     const usersContainer = document.getElementById('users-container')!;
     const requestsContainer = document.getElementById('requests-container')!;
     const modal = document.getElementById('user-details-modal')!;
+
+    // Chat elements
+    const chatColumn = document.getElementById('chat-column')!;
+    const chatWithUsername = document.getElementById('chat-with-username')!;
+    const chatHistory = document.getElementById('chat-history')!;
+    const chatInput = document.getElementById('chat-input') as HTMLInputElement;
+    const sendChatBtn = document.getElementById('send-chat-btn')!;
+    let currentChatUserId: number | null = null;
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
 
     document.querySelectorAll('.collapsible-trigger').forEach(trigger => {
         trigger.addEventListener('click', () => {
@@ -97,8 +125,24 @@ export function renderFriends(appElement: HTMLElement): void
             const response = await authenticatedFetch('/api/friends');
             if (!response.ok) throw new Error(i18next.t('errorLoadingFriends'));
             const friends: User[] = await response.json();
-            friendsContainer.innerHTML = friends.length > 0 ? friends.map(friend => `<div class="text-white text-xl md:text-3xl p-2 cursor-pointer hover:bg-gray-700" data-user-id="${friend.id}">${friend.username}</div>`).join('') : `<div class="text-gray-400 text-center text-xl md:text-2xl">${i18next.t('noFriends')}</div>`;
-            friendsContainer.querySelectorAll('[data-user-id]').forEach(el => {
+            if (friends.length > 0) {
+                friendsContainer.innerHTML = friends.map(friend => `
+                    <div class="flex justify-between items-center text-white text-xl md:text-3xl p-2 hover:bg-gray-700">
+                        <span class="cursor-pointer details-btn" data-user-id="${friend.id}">${friend.username}</span>
+                        <div class="flex gap-2">
+                            <button class="chat-btn relative w-[80px] h-[40px] transform hover:scale-110 transition-transform" data-user-id="${friend.id}" data-username="${friend.username}">
+                                <img src="${i18next.t('img.chat')}" alt="${i18next.t('chat')}" class="absolute inset-0 w-full h-full object-contain">
+                            </button>
+                            <button class="history-btn relative w-[80px] h-[40px] transform hover:scale-110 transition-transform" data-user-id="${friend.id}">
+                                <img src="${i18next.t('img.history')}" alt="${i18next.t('history')}" class="absolute inset-0 w-full h-full object-contain">
+                            </button>
+                        </div>
+                    </div>`).join('');
+            } else {
+                friendsContainer.innerHTML = `<div class="text-gray-400 text-center text-xl md:text-2xl">${i18next.t('noFriends')}</div>`;
+            }
+
+            friendsContainer.querySelectorAll('.details-btn').forEach(el => {
                 el.addEventListener('click', async () => {
                     const userId = el.getAttribute('data-user-id');
                     try {
@@ -110,11 +154,85 @@ export function renderFriends(appElement: HTMLElement): void
                     }
                 });
             });
+
+            friendsContainer.querySelectorAll('.chat-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = parseInt(btn.getAttribute('data-user-id')!);
+                    const username = btn.getAttribute('data-username')!;
+                    openChat(userId, username);
+                });
+            });
+
+            friendsContainer.querySelectorAll('.history-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const userId = parseInt(btn.getAttribute('data-user-id')!);
+                    const username = friends.find(f => f.id === userId)?.username || 'Usuario';
+                    openChat(userId, username);
+                    loadChatHistory(userId);
+                });
+            });
+
         } catch (error) {
             console.error(error);
             friendsContainer.innerHTML = `<div class="text-red-500 p-2">${(error as Error).message}</div>`;
         }
     }
+
+    function openChat(userId: number, username: string) {
+        if (currentChatUserId === userId && !chatColumn.classList.contains('hidden')) {
+            chatColumn.classList.add('hidden');
+            currentChatUserId = null;
+            return;
+        }
+        currentChatUserId = userId;
+        chatHistory.innerHTML = '';
+        chatInput.value = '';
+        chatColumn.classList.remove('hidden');
+    }
+
+    async function loadChatHistory(withUserId: number) {
+        if (!currentChatUserId) return;
+        try {
+            const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || 'Error al cargar mensajes');
+            const messages: Message[] = data; // Asumiendo que la respuesta es un array de mensajes
+    
+            chatHistory.innerHTML = messages.map(msg => {
+                const isCurrentUser = msg.sender_id === currentUser.id;
+                return `<div class="p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}">
+                            <p class="text-sm">${msg.message}</p>
+                            <span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                        </div>`;
+            }).join('');
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Auto-scroll to bottom
+        } catch (error) {
+            chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar el historial.</div>`;
+        }
+    }
+    
+    async function sendMessage() {
+        if (!currentChatUserId || !chatInput.value.trim()) return;
+    
+        try {
+            await authenticatedFetch('/api/chat/private', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recipientId: currentChatUserId, message: chatInput.value })
+            });
+            chatInput.value = '';
+            loadChatHistory(currentChatUserId); // Recargar historial
+        } catch (error) {
+            alert('Error al enviar el mensaje.');
+        }
+    }
+    
+    sendChatBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
 
     async function loadFriendRequests() {
         try {
@@ -183,16 +301,28 @@ export function renderFriends(appElement: HTMLElement): void
 
     async function loadAllUsers() {
         try {
-            const [usersResponse, friendsResponse] = await Promise.all([
+            const [usersResponse, friendsResponse, requestsResponse] = await Promise.all([
                 authenticatedFetch('/api/users'),
-                authenticatedFetch('/api/friends')
+                authenticatedFetch('/api/friends'),
+                authenticatedFetch('/api/friends/requests')
             ]);
-            if (!usersResponse.ok || !friendsResponse.ok) throw new Error(i18next.t('errorLoadingData'));
+    
+            if (!usersResponse.ok || !friendsResponse.ok || !requestsResponse.ok) throw new Error(i18next.t('errorLoadingData'));
+    
             const allUsers: User[] = await usersResponse.json();
             const friends: User[] = await friendsResponse.json();
+            const friendRequests: FriendRequest[] = await requestsResponse.json();
+    
             const friendIds = new Set(friends.map(f => f.id));
+            const requestIds = new Set(friendRequests.map(r => r.id));
+            
             const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-            const otherUsers = allUsers.filter(user => user.id !== currentUser.id && !friendIds.has(user.id));
+    
+            const otherUsers = allUsers.filter(user => 
+                user.id !== currentUser.id && 
+                !friendIds.has(user.id) &&
+                !requestIds.has(user.id) 
+            );
 
 			usersContainer.innerHTML = otherUsers.map(user => `
 				<div class="flex justify-between items-center text-white text-xl md:text-3xl p-2 hover:bg-gray-700">
@@ -227,6 +357,7 @@ export function renderFriends(appElement: HTMLElement): void
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || i18next.t('errorSendingRequest'));
             alert(i18next.t('friendRequestSent'));
+            loadAllUsers(); // Recargar la lista para que el usuario desaparezca
         } catch (error) {
             alert(`Error: ${(error as Error).message}`);
         }
