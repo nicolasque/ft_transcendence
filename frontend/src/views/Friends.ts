@@ -28,6 +28,8 @@ const blockedUserIds = new Set<number>();
 export function renderFriends(appElement: HTMLElement): void {
     if (!appElement) return;
 
+    const sentRequestIds = new Set<number>();
+
     appElement.innerHTML = `
     <div class="h-screen flex flex-col p-4 md:p-8 relative overflow-y-auto font-press-start">
 
@@ -227,7 +229,12 @@ export function renderFriends(appElement: HTMLElement): void {
             const friendIds = new Set(friends.map((f: User) => f.id));
             const requestIds = new Set(requests.map((r: FriendRequest) => r.id));
             
-            const otherUsers = users.filter((user: User) => user.id !== currentUser.id && !friendIds.has(user.id) && !requestIds.has(user.id));
+            const otherUsers = users.filter((user: User) => 
+                user.id !== currentUser.id && 
+                !friendIds.has(user.id) && 
+                !requestIds.has(user.id) &&
+                !sentRequestIds.has(user.id)
+            );
 
             usersContainer.innerHTML = otherUsers.map((user: User) => `
 				<div class="flex justify-between items-center text-white p-2">
@@ -249,6 +256,8 @@ export function renderFriends(appElement: HTMLElement): void {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ one_user_id: fromId, two_user_id: toId })
             });
+            alert(i18next.t('friendRequestSent'));
+            sentRequestIds.add(toId);
             loadAllUsers();
         } catch (error) { alert(`Error: ${(error as Error).message}`); }
     }
