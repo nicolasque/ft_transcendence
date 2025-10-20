@@ -92,6 +92,7 @@
     "AITurn": "Turno de la IA",
 	"send": "Enviar",
 	"block": "Bloquear",
+	"return": "Volver",
 
 	"img":
 	{
@@ -121,6 +122,7 @@
 	  "chat": "/assets/es/chat_es.png",
       "history": "/assets/es/history_es.png",
 	  "send": "/assets/es/send_es.png",
-	  "block": "/assets/es/block_es.png"
+	  "block": "/assets/es/block_es.png",
+	  "return": "/assets/es/return_es.png"
 	}
 }

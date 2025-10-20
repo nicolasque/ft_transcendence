@@ -60,6 +60,7 @@ import { renderLogin } from './views/Login.ts';
 import { renderStart } from './views/Start.ts';
 import { renderCharQP } from './views/CharQP.ts';
 import { renderProfile } from './views/Profile.ts';
+import { renderFriendProfile } from './views/FriendProfile.ts'; // Importar la nueva vista
 import { renderAbout } from './views/About.ts';
 import { initializePongGame } from './views/Pong.ts';
 import { renderTicTacToe } from './views/TicTacToe.ts';
@@ -76,6 +77,7 @@ const routes: { [key: string]: (element: HTMLElement) => void } =
 	'/charQP': protectedRoute(renderCharQP),
 	'/ticTacToe': protectedRoute(renderTicTacToe),
 	'/profile': protectedRoute(renderProfile),
+    '/profile/:id': protectedRoute(renderFriendProfile), // Nueva ruta dinámica
 	'/about': protectedRoute(renderAbout),
 	'/pong': protectedRoute(initializePongGame),
 	'/tictactoe': protectedRoute(renderTicTacToe),
@@ -87,7 +89,17 @@ function router()
 	if (!appElement)
 		return;
     const path = window.location.pathname;
-    const view = routes[path];
+    
+    // Soporte para rutas dinámicas
+    const dynamicRoute = Object.keys(routes).find(route => {
+        const routeParts = route.split('/').filter(p => p);
+        const pathParts = path.split('/').filter(p => p);
+        if (routeParts.length !== pathParts.length) return false;
+        return routeParts.every((part, i) => part.startsWith(':') || part === pathParts[i]);
+    });
+    
+    const view = routes[dynamicRoute || path];
+
     if (view)
 		view(appElement);
 	else

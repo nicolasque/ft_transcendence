@@ -92,6 +92,7 @@
     "AITurn": "AI's turn",
 	"send": "Send",
 	"block": "Block",
+	"return": "Return",
 
 	"img":
 	{
@@ -121,6 +122,7 @@
 	  "chat": "/assets/en/chat.png",
       "history": "/assets/en/history.png",
 	  "send": "/assets/en/send.png",
-	  "block": "/assets/en/block.png"
+	  "block": "/assets/en/block.png",
+	  "return": "/assets/en/return.png"
 	}
 }

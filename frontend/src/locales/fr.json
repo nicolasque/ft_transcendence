@@ -92,6 +92,7 @@
     "AITurn": "Tour de l'IA",
 	"send": "Envoyer",
 	"block": "Bloc",
+	"return": "Retour",
 
 	"img":
 	{
@@ -121,6 +122,7 @@
 	  "chat": "/assets/fr/chat_fr.png",
       "history": "/assets/fr/history_fr.png",
 	  "send": "/assets/fr/send_fr.png",
-	  "block": "/assets/fr/block_fr.png"
+	  "block": "/assets/fr/block_fr.png",
+	  "return": "/assets/fr/return_fr.png"
 	}
 }

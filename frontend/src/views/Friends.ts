@@ -96,30 +96,26 @@ export function renderFriends(appElement: HTMLElement): void {
         loadChatHistory(userId);
     }
 
-	async function loadChatHistory(withUserId: number) {
-		try {
-			const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
-			const messages: Message[] = await response.json();
-			
-			const oddIdMessages = messages.filter(msg => msg.id % 2 !== 0); // Filtro para mostrar solo mensajes con ID impar
-	
-			chatHistory.innerHTML = '';
-			
-			oddIdMessages.filter(msg => !blockedUserIds.has(msg.sender_id)).forEach(msg => {
-				const isCurrentUser = msg.sender_id === currentUser.id;
-				const messageDiv = document.createElement('div');
-				messageDiv.className = `p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}`;
-				messageDiv.innerHTML = `<p class="text-sm text-white">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
-				chatHistory.appendChild(messageDiv);
-			});
-	
-			chatHistory.scrollTop = chatHistory.scrollHeight;
-		} 
-		catch (error) 
-		{
-			chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
-		}
-	}
+    async function loadChatHistory(withUserId: number) {
+        try {
+            const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
+            const messages: Message[] = await response.json();
+            
+            chatHistory.innerHTML = '';
+            
+            messages.filter(msg => !blockedUserIds.has(msg.sender_id))
+                .forEach(msg => {
+                    const isCurrentUser = msg.sender_id === currentUser.id;
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}`;
+                    messageDiv.innerHTML = `<p class="text-sm text-white">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
+                    chatHistory.appendChild(messageDiv);
+                });
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        } catch (error) {
+            chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
+        }
+    }
     
     async function sendMessage() {
         if (!currentChatUserId || !chatInput.value.trim()) return;
@@ -140,13 +136,13 @@ export function renderFriends(appElement: HTMLElement): void {
         }
     });
 
-	function handlePlayInvite(opponentId: string, opponentUsername: string) {
+    function handlePlayInvite(opponentId: string, opponentUsername: string) {
         localStorage.setItem('opponentId', opponentId);
         localStorage.setItem('opponentUsername', opponentUsername);
         localStorage.setItem('gameMode', 'TWO_PLAYERS');
         navigate('/pong');
     }
-	
+
     function handleBlockToggle(userId: number) {
         if (blockedUserIds.has(userId)) {
             blockedUserIds.delete(userId);
@@ -190,7 +186,8 @@ export function renderFriends(appElement: HTMLElement): void {
             handlePlayInvite(target.dataset.userId!, target.dataset.username!);
         }));
         friendsContainer.querySelectorAll('.profile-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            navigate(`/profile/${(e.currentTarget as HTMLElement).dataset.userId}`);
+            const userId = (e.currentTarget as HTMLElement).dataset.userId;
+            navigate(`/profile/${userId}`);
         }));
         friendsContainer.querySelectorAll('.block-toggle-btn').forEach(btn => btn.addEventListener('click', (e) => {
             handleBlockToggle(parseInt((e.currentTarget as HTMLElement).dataset.userId!));
