@@ -22,7 +22,7 @@ const fastify = Fastify({logger: true});
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-await fastify.register(cors, {});
+await fastify.register(multipart);
 
 
 //Anado la el registro al plugin para las fotos de usuarios 
