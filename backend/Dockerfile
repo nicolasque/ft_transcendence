@@ -16,5 +16,7 @@ RUN npm install
 # Copiar el resto de los archivos del proyecto (como server.js) al contenedor.
 COPY . .
 
+RUN mkdir -p uploads/avatars && chown -R node:node uploads
+
 # El comando para iniciar el servidor de desarrollo. Se usará el script "dev" del package.json.
 CMD ["npm", "run", "dev"]
