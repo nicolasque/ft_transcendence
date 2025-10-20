@@ -90,6 +90,8 @@
     "draw": "¡Es un empate!",
     "playerOTurn": "Turno del Jugador O",
     "AITurn": "Turno de la IA",
+	"send": "Enviar",
+	"block": "Bloquear",
 
 	"img":
 	{
@@ -117,6 +119,8 @@
 	  "hard": "/assets/es/hard_es.png",
 	  "impossible": "/assets/es/impossible_es.png",
 	  "chat": "/assets/es/chat_es.png",
-      "history": "/assets/es/history_es.png"
+      "history": "/assets/es/history_es.png",
+	  "send": "/assets/es/send_es.png",
+	  "block": "/assets/es/block_es.png"
 	}
 }

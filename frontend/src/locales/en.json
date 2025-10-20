@@ -90,6 +90,8 @@
     "draw": "It's a draw!",
     "playerOTurn": "Player O's turn",
     "AITurn": "AI's turn",
+	"send": "Send",
+	"block": "Block",
 
 	"img":
 	{
@@ -117,6 +119,8 @@
 	  "hard": "/assets/en/hard.png",
 	  "impossible": "/assets/en/impossible.png",
 	  "chat": "/assets/en/chat.png",
-      "history": "/assets/en/history.png"
+      "history": "/assets/en/history.png",
+	  "send": "/assets/en/send.png",
+	  "block": "/assets/en/block.png"
 	}
 }
