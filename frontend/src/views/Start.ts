@@ -81,6 +81,8 @@ export function renderStart(appElement: HTMLElement): void
 	{
         quickPlayButton.addEventListener('click', () =>
 		{
+            localStorage.removeItem('opponentId');
+            localStorage.removeItem('opponentUsername');
             localStorage.setItem('nextRoute', '/pong');
             navigate('/charQP');
             initializeAudio();

@@ -286,11 +286,19 @@ export function initializePongGame(container: HTMLElement) {
 		} else {
 			const user = JSON.parse(localStorage.getItem('user') || '{}');
 			const player1Name = user.username || 'Player 1';
-			let player2Name = i18next.t('player2');
+			let player2Name;
+	
 			if (gameMode === 'ONE_PLAYER') {
 				player2Name = i18next.t('ai');
-			} else if (localStorage.getItem('opponentUsername')) {
-				player2Name = localStorage.getItem('opponentUsername')!;
+			} else if (gameMode === 'TWO_PLAYERS') {
+				const opponentUsername = localStorage.getItem('opponentUsername');
+				if (opponentUsername) {
+					player2Name = opponentUsername;
+				} else {
+					player2Name = 'guest';
+				}
+			} else {
+				player2Name = i18next.t('player2');
 			}
 	
 			drawTextWithSizing(player1Name, 40, 60, 'left', canvas.width / 3);
