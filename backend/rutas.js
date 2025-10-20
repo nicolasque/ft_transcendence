@@ -81,6 +81,12 @@ const rutas = [
 		preHandler: authMiddleware,
 		handler: UserControler.delete,
 	},
+	{
+		method: "POST",
+		url: "/users/avatar",
+		preHandler: authMiddleware,
+		handler: UserControler.uploadAvatar // Se vincula el nuevo método
+	},
 
 	//Rutas de amigos
 	{
@@ -154,7 +160,7 @@ const rutas = [
 	},
 	{
 		method: "PUT",
-		url: "/match/update",
+		url: "/match/update/:matchId",
 		preHandler: authMiddleware,
 		handler: MatchControler.update
 	},

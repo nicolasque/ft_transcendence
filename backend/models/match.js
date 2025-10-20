@@ -17,6 +17,10 @@ const MatchModel = db.define( 'match', {
         type: sequelize.INTEGER,
         allowNull: false,
     },
+	game: {
+		type: sequelize.ENUM('pong', 'tictactoe'),
+		allowNull: false
+	},
     match_type: {
         type: sequelize.ENUM('local', 'friends', 'ia', 'gues'),
         allowNull: true,
@@ -40,7 +44,7 @@ const MatchModel = db.define( 'match', {
 });
 
 MatchModel.belongsTo(UserModel, { as: 'player_one', foreignKey: 'player_one_id' });
-MatchModel.belongsTo(UserModel, { as: '', foreignKey: 'player_two_id' });
+MatchModel.belongsTo(UserModel, { as: 'player_two', foreignKey: 'player_two_id' });
 
 UserModel.hasMany(ChatModel, {
     foreignKey: 'player_one_id',
