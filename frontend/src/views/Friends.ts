@@ -101,8 +101,7 @@ export function renderFriends(appElement: HTMLElement): void {
 			const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
 			const messages: Message[] = await response.json();
 			
-			// Filtro para mostrar solo mensajes con ID impar
-			const oddIdMessages = messages.filter(msg => msg.id % 2 !== 0);
+			const oddIdMessages = messages.filter(msg => msg.id % 2 !== 0); // Filtro para mostrar solo mensajes con ID impar
 	
 			chatHistory.innerHTML = '';
 			
@@ -141,13 +140,13 @@ export function renderFriends(appElement: HTMLElement): void {
         }
     });
 
-    function handlePlayInvite(opponentId: string, opponentUsername: string) {
+	function handlePlayInvite(opponentId: string, opponentUsername: string) {
         localStorage.setItem('opponentId', opponentId);
         localStorage.setItem('opponentUsername', opponentUsername);
-        localStorage.setItem('nextRoute', '/pong');
-        navigate('/charQP');
+        localStorage.setItem('gameMode', 'TWO_PLAYERS');
+        navigate('/pong');
     }
-
+	
     function handleBlockToggle(userId: number) {
         if (blockedUserIds.has(userId)) {
             blockedUserIds.delete(userId);
