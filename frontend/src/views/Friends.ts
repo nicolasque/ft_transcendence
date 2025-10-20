@@ -39,7 +39,7 @@ export function renderFriends(appElement: HTMLElement): void {
             </button>
         </div>
 
-        <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-7xl mx-auto">
+        <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-7xl mx-auto min-h-0">
             
             <div class="col-span-1 flex flex-col space-y-4">
                 <div class="w-full flex flex-col items-center">
@@ -58,12 +58,11 @@ export function renderFriends(appElement: HTMLElement): void {
                 <div id="friends-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg h-full"></div>
             </div>
             
-            <div id="chat-column" class="col-span-1 w-full bg-black border-4 border-cyan-400 rounded-lg p-4 flex-col shadow-lg hidden">
-                <h2 id="chat-with-username" class="text-2xl text-center text-cyan-400 font-bold mb-4 truncate"></h2>
-                <div id="chat-history" class="flex-grow overflow-y-auto mb-4 p-2 bg-gray-900 rounded min-h-[400px]"></div>
-                <div class="flex">
-                    <input id="chat-input" type="text" class="flex-grow bg-gray-700 p-2 rounded-l text-white" placeholder="Escribe...">
-                    <button id="send-chat-btn" class="relative w-24 h-12"><img src="${i18next.t('img.send')}" class="w-full h-full object-contain"></button>
+            <div id="chat-column" class="col-span-1 w-full bg-black border-4 border-cyan-400 rounded-lg p-4 flex flex-col shadow-lg hidden h-full overflow-hidden">
+                <h2 id="chat-with-username" class="text-2xl text-center text-white font-bold mb-4 truncate"></h2>
+                <div id="chat-history" class="flex-grow overflow-y-auto mb-4 p-2 bg-gray-900 rounded"></div>
+                <div class="flex flex-shrink-0">
+                    <input id="chat-input" type="text" class="flex-grow bg-gray-700 p-2 rounded text-white">
                 </div>
             </div>
         </div>
@@ -80,7 +79,6 @@ export function renderFriends(appElement: HTMLElement): void {
     const chatWithUsername = document.getElementById('chat-with-username')!;
     const chatHistory = document.getElementById('chat-history')!;
     const chatInput = document.getElementById('chat-input') as HTMLInputElement;
-    const sendChatBtn = document.getElementById('send-chat-btn')!;
     
     let currentChatUserId: number | null = null;
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
@@ -93,7 +91,7 @@ export function renderFriends(appElement: HTMLElement): void {
 
     function openChat(userId: number, username: string) {
         currentChatUserId = userId;
-        chatWithUsername.textContent = username; // Solo el nombre de usuario
+        chatWithUsername.textContent = username;
         chatColumn.classList.remove('hidden');
         loadChatHistory(userId);
     }
@@ -103,7 +101,7 @@ export function renderFriends(appElement: HTMLElement): void {
             const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
             const messages: Message[] = await response.json();
             
-            chatHistory.innerHTML = ''; // Limpiar antes de añadir nuevos mensajes
+            chatHistory.innerHTML = '';
             
             messages.filter(msg => !blockedUserIds.has(msg.sender_id))
                 .forEach(msg => {
@@ -132,8 +130,11 @@ export function renderFriends(appElement: HTMLElement): void {
         } catch (error) { alert('Error al enviar mensaje.'); }
     }
 
-    sendChatBtn.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keydown', (e) => e.key === 'Enter' && sendMessage());
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
 
     function handlePlayInvite(opponentId: string, opponentUsername: string) {
         localStorage.setItem('opponentId', opponentId);
