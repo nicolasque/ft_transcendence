@@ -3,88 +3,88 @@ import UserModel from "../models/Users.js";
 import FriendModel from "../models/Friends.js";
 
 class FriendControler {
-    constructor() { };
+	constructor() { };
 
-    async createRequest(req, res) { //one_user_id tiene que ser el que envia la solicitud
-        try {
-            const friendModel = await FriendModel.create(req.body);
-            if (friendModel)
-                res.status(200).send({ status: true, message: 'Se ha creado la solicitud de amistad' });
-        }
-        catch (e) { res.status(500).send({ error: e }) };
-    }
+	async createRequest(req, res) { //one_user_id tiene que ser el que envia la solicitud
+		try {
+			const friendModel = await FriendModel.create(req.body);
+			if (friendModel)
+				res.status(200).send({ status: true, message: 'Se ha creado la solicitud de amistad' });
+		}
+		catch (e) { res.status(500).send({ error: e }) };
+	}
 
-    async acceptFriend(req, res) {
-        try {
-            const { friendshipId } = req.params;
-            const userId = req.user.id;
-            // Buscar la solicitud pendiente
-            const friendRequest = await FriendModel.findOne({
-                where: {
-                    id: friendshipId,
-                    two_user_id: userId, // El usuario autenticado debe ser el receptor
-                    state: 'pending'
-                }
-            });
+	async acceptFriend(req, res) {
+		try {
+			const { friendshipId } = req.params;
+			const userId = req.user.id;
+			// Buscar la solicitud pendiente
+			const friendRequest = await FriendModel.findOne({
+				where: {
+					id: friendshipId,
+					two_user_id: userId, // El usuario autenticado debe ser el receptor
+					state: 'pending'
+				}
+			});
 
-            if (!friendRequest) {
-                return res.status(404).send({
-                    status: false,
-                    message: 'Solicitud de amistad no encontrada o ya procesada'
-                });
-            }
+			if (!friendRequest) {
+				return res.status(404).send({
+					status: false,
+					message: 'Solicitud de amistad no encontrada o ya procesada'
+				});
+			}
 
-            await friendRequest.update({ state: 'accepted' });
+			await friendRequest.update({ state: 'accepted' });
 
-            await FriendModel.create({
-                one_user_id: userId,
-                two_user_id: friendRequest.one_user_id,
-                state: 'accepted'
-            });
+			await FriendModel.create({
+				one_user_id: userId,
+				two_user_id: friendRequest.one_user_id,
+				state: 'accepted'
+			});
 
-            res.status(200).send({
-                status: true,
-                message: 'Solicitud de amistad aceptada',
-                data: friendRequest
-            });
-        }
-        catch (e) {
-            res.status(500).send({ error: e.message });
-        }
-    }
+			res.status(200).send({
+				status: true,
+				message: 'Solicitud de amistad aceptada',
+				data: friendRequest
+			});
+		}
+		catch (e) {
+			res.status(500).send({ error: e.message });
+		}
+	}
 
-    async getFriends(req, res) {
-        try {
-            const userId = req.user.id;
+	async getFriends(req, res) {
+		try {
+			const userId = req.user.id;
 
-            // Buscar todas las amistades aceptadas donde el usuario es uno de los dos
-            const friends = await FriendModel.findAll({
-                where: {
-                    state: 'accepted',
-                    [Op.or]: [
-                        { one_user_id: userId },
-                        { two_user_id: userId }
-                    ]
-                }
-            });
+			// Buscar todas las amistades aceptadas donde el usuario es uno de los dos
+			const friends = await FriendModel.findAll({
+				where: {
+					state: 'accepted',
+					[Op.or]: [
+						{ one_user_id: userId },
+						{ two_user_id: userId }
+					]
+				}
+			});
 
-            const friendIds = friends.map(f => (f.one_user_id === userId ? f.two_user_id : f.one_user_id));
+			const friendIds = friends.map(f => (f.one_user_id === userId ? f.two_user_id : f.one_user_id));
 
-            const friendDetails = await UserModel.findAll({
-                where: { id: friendIds },
-                attributes: { exclude: ['password', 'email', 'twofa_secret'] }
-            });
+			const friendDetails = await UserModel.findAll({
+				where: { id: friendIds },
+				attributes: { exclude: ['password', 'email', 'twofa_secret'] }
+			});
 
-            res.status(200).send(friendDetails);
-        } catch (e) {
+			res.status(200).send(friendDetails);
+		} catch (e) {
 
-            res.status(500).send({ error: e.message });
-        }
-    }
+			res.status(500).send({ error: e.message });
+		}
+	}
 	async getFriendRequests(req, res) {
 		try {
 			const userId = req.user.id;
-	
+
 			// 1. Busca las solicitudes pendientes e INCLUYE los datos del usuario que la envió
 			const friendRequests = await FriendModel.findAll({
 				where: {
@@ -97,7 +97,7 @@ class FriendControler {
 					attributes: ['id', 'username', 'email', 'elo'] // Solo trae estos campos
 				}]
 			});
-	
+
 			// 2. Mapea el resultado para crear un objeto con los datos que el frontend necesita
 			const responseData = friendRequests.map(request => ({
 				friendshipId: request.id, // <-- LA CLAVE: Se añade el ID de la amistad
@@ -106,7 +106,7 @@ class FriendControler {
 				email: request.userOne.email,
 				elo: request.userOne.elo
 			}));
-	
+
 			// 3. Envía la lista de objetos completa al frontend
 			res.status(200).send(responseData);
 		} catch (e) {
@@ -114,71 +114,94 @@ class FriendControler {
 		}
 	}
 
-    async deleteFriend(req, res) {
-        try {
-            const { friendshipId } = req.params;
-            const userId = req.user.id;
+	async deleteFriend(req, res) {
+		try {
+			const { friendshipId } = req.params;
+			const userId = req.user.id;
 
-            // Buscar la relación (sin importar el estado)
-            const friendship = await FriendModel.findOne({
-                where: {
-                    id: friendshipId,
-                    [Op.or]: [
-                        { one_user_id: userId },
-                        { two_user_id: userId }
-                    ]
-                }
-            });
+			// Buscar la relación (sin importar el estado)
+			const friendship = await FriendModel.findOne({
+				where: {
+					id: friendshipId,
+					[Op.or]: [
+						{ one_user_id: userId },
+						{ two_user_id: userId }
+					]
+				}
+			});
 
-            if (!friendship) {
-                return res.status(404).send({
-                    status: false,
-                    message: 'Relación no encontrada'
-                });
-            }
+			if (!friendship) {
+				return res.status(404).send({
+					status: false,
+					message: 'Relación no encontrada'
+				});
+			}
 
-            if (friendship.state === 'pending') {
+			if (friendship.state === 'pending') {
 
-                if (friendship.one_user_id !== userId && friendship.two_user_id !== userId) {
-                    return res.status(403).send({
-                        status: false,
-                        message: 'No tienes permiso para esta acción'
-                    });
-                }
-            }
+				if (friendship.one_user_id !== userId && friendship.two_user_id !== userId) {
+					return res.status(403).send({
+						status: false,
+						message: 'No tienes permiso para esta acción'
+					});
+				}
+			}
 
-            await FriendModel.destroy({
-                where: {
-                    [Op.or]: [
-                        {
-                            one_user_id: friendship.one_user_id,
-                            two_user_id: friendship.two_user_id
-                        },
-                        {
-                            one_user_id: friendship.two_user_id,
-                            two_user_id: friendship.one_user_id
-                        }
-                    ]
-                }
-            });
+			await FriendModel.destroy({
+				where: {
+					[Op.or]: [
+						{
+							one_user_id: friendship.one_user_id,
+							two_user_id: friendship.two_user_id
+						},
+						{
+							one_user_id: friendship.two_user_id,
+							two_user_id: friendship.one_user_id
+						}
+					]
+				}
+			});
 
-            // Mensaje segun si es eliminar o simplemente recazar
-            let message = 'Relación eliminada';
-            if (friendship.state === 'pending') {
-                message = friendship.one_user_id === userId
-                    ? 'Solicitud cancelada'
-                    : 'Solicitud rechazada';
-            } else if (friendship.state === 'accepted') {
-                message = 'Amistad eliminada';
-            }
-            res.status(200).send({
-                status: true,
-                message: message
-            });
-        } catch (e) {
-            res.status(500).send({ error: e.message });
-        }
-    }
+			// Mensaje segun si es eliminar o simplemente recazar
+			let message = 'Relación eliminada';
+			if (friendship.state === 'pending') {
+				message = friendship.one_user_id === userId
+					? 'Solicitud cancelada'
+					: 'Solicitud rechazada';
+			} else if (friendship.state === 'accepted') {
+				message = 'Amistad eliminada';
+			}
+			res.status(200).send({
+				status: true,
+				message: message
+			});
+		} catch (e) {
+			res.status(500).send({ error: e.message });
+		}
+	}
+
+	async update(res, req) {
+		try {
+			const { friendshipId } = req.params;
+
+			let friendModel = await FriendModel.findByPk(Number(friendshipId));
+
+			if (!friendModel)
+				return res.status(404).send({ message: 'Registro no encontrado' });
+			if ('id' in req.body) delete req.body.id;
+			if ('one_user_id' in req.body) delete req.body.one_user_id;
+			if ('two_user_id' in req.body) delete req.body.two_user_id;
+
+			Object.assign(friendModel, req.body);
+			await friendModel.save();
+
+			const plain = friendModel.get({plain:true});
+
+			return res.status(200).send(plain);
+		} catch {
+			return res.status(500).send({ error });
+		}
+	}
 }
 
 export default new FriendControler();
