@@ -227,6 +227,35 @@ export function initializePongGame(container: HTMLElement) {
 		}
 	}
 
+	function drawTextWithSizing(text: string, x: number, y: number, align: 'left' | 'right' | 'center', maxWidth: number) {
+		const defaultFontSize = 32;
+		const minFontSize = 16;
+		let fontSize = defaultFontSize;
+
+		context.font = `${fontSize}px 'Press Start 2P'`;
+		let measuredWidth = context.measureText(text).width;
+
+		while (measuredWidth > maxWidth && fontSize > minFontSize) {
+			fontSize--;
+			context.font = `${fontSize}px 'Press Start 2P'`;
+			measuredWidth = context.measureText(text).width;
+		}
+
+		let finalText = text;
+		if (measuredWidth > maxWidth) {
+			let charsToRemove = 1;
+			while (context.measureText(finalText + '...').width > maxWidth && finalText.length > 0) {
+				finalText = text.substring(0, text.length - charsToRemove);
+				charsToRemove++;
+			}
+			finalText += '...';
+		}
+
+		context.textAlign = align;
+		context.fillStyle = 'rgba(255, 255, 255, 0.75)';
+		context.fillText(finalText, x, y);
+	}
+
 	function draw() {
 		context.clearRect(0, 0, canvas.width, canvas.height);
 		context.fillStyle = 'black';
@@ -245,18 +274,32 @@ export function initializePongGame(container: HTMLElement) {
 		context.stroke();
 		context.setLineDash([]);
 	
-		context.font = "48px 'Press Start 2P'";
 		context.fillStyle = 'rgba(255, 255, 255, 0.75)';
-		context.textAlign = 'center';
 	
 		if (gameMode === 'FOUR_PLAYERS') {
+			context.font = "48px 'Press Start 2P'";
+			context.textAlign = 'center';
 			context.fillText(`${score.p3 || 3}`, canvas.width / 2, 60);
 			context.fillText(`${score.p1 || 3}`, 60, canvas.height / 2 + 15);
 			context.fillText(`${score.p2 || 3}`, canvas.width - 60, canvas.height / 2 + 15);
 			context.fillText(`${score.p4 || 3}`, canvas.width / 2, canvas.height - 30);
 		} else {
-			context.fillText(`${score.p1 || 0}`, canvas.width / 4, 60);
-			context.fillText(`${score.p2 || 0}`, (canvas.width / 4) * 3, 60);
+			const user = JSON.parse(localStorage.getItem('user') || '{}');
+			const player1Name = user.username || 'Player 1';
+			let player2Name = i18next.t('player2');
+			if (gameMode === 'ONE_PLAYER') {
+				player2Name = i18next.t('ai');
+			} else if (localStorage.getItem('opponentUsername')) {
+				player2Name = localStorage.getItem('opponentUsername')!;
+			}
+	
+			drawTextWithSizing(player1Name, 40, 60, 'left', canvas.width / 3);
+			drawTextWithSizing(player2Name, canvas.width - 40, 60, 'right', canvas.width / 3);
+			
+			context.font = "48px 'Press Start 2P'";
+			context.textAlign = 'center';
+			context.fillText(`${score.p1 || 0}`, canvas.width / 4, 120);
+			context.fillText(`${score.p2 || 0}`, (canvas.width / 4) * 3, 120);
 		}
 	
 		const { player1, player2, player3, player4, ball } = gameObjects;
