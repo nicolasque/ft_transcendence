@@ -108,7 +108,7 @@ export function renderFriends(appElement: HTMLElement): void {
                     const isCurrentUser = msg.sender_id === currentUser.id;
                     const messageDiv = document.createElement('div');
                     messageDiv.className = `p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}`;
-                    messageDiv.innerHTML = `<p class="text-sm">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
+                    messageDiv.innerHTML = `<p class="text-sm text-white">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
                     chatHistory.appendChild(messageDiv);
                 });
             chatHistory.scrollTop = chatHistory.scrollHeight;
