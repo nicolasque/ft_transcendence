@@ -99,6 +99,7 @@ export function renderTicTacToe(container: HTMLElement): void {
 
     if (!matchId) {
         console.error("No se puede finalizar la partida porque no tiene ID.");
+        winnerMessage.innerHTML = "Error: No se pudo guardar la partida.";
         return;
     }
 
@@ -107,8 +108,12 @@ export function renderTicTacToe(container: HTMLElement): void {
 
     if (winner === 'X') {
         p1_points = 1;
+        winnerMessage.innerHTML = i18next.t('playerXWins');
     } else if (winner === 'O') {
         p2_points = 1;
+        winnerMessage.innerHTML = i18next.t('playerOWins');
+    } else {
+        winnerMessage.innerHTML = i18next.t('draw');
     }
 
     const finalData = {
@@ -118,23 +123,28 @@ export function renderTicTacToe(container: HTMLElement): void {
     };
 
     try {
-        const response = await authenticatedFetch(`/api/match/update/${matchId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(finalData),
-        });
+      const response = await authenticatedFetch(`/api/match/update/${matchId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(finalData),
+      });
 
-        if (!response.ok) throw new Error('Failed to update match');
+      if (!response.ok) throw new Error('Failed to update match');
 
-        const { playerOne: updatedPlayerOne, playerTwo: updatedPlayerTwo } = await response.json();
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (winner !== 'draw') {
+          const { playerOne: updatedPlayerOne, playerTwo: updatedPlayerTwo } = await response.json();
+          const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
-        if (updatedPlayerOne && currentUser.id === updatedPlayerOne.id) {
-            localStorage.setItem('user', JSON.stringify(updatedPlayerOne));
-            console.log('ELO actualizado para Jugador 1 (X):', updatedPlayerOne.elo);
-        } else if (updatedPlayerTwo && currentUser.id === updatedPlayerTwo.id) {
-            localStorage.setItem('user', JSON.stringify(updatedPlayerTwo));
-        }
+          if (updatedPlayerOne && currentUser.id === updatedPlayerOne.id) {
+              localStorage.setItem('user', JSON.stringify(updatedPlayerOne));
+              console.log('ELO actualizado en localStorage para Jugador 1 (X):', updatedPlayerOne.elo);
+          } else if (updatedPlayerTwo && currentUser.id === updatedPlayerTwo.id) {
+               localStorage.setItem('user', JSON.stringify(updatedPlayerTwo));
+               console.log('ELO actualizado en localStorage para Jugador 2 (O):', updatedPlayerTwo.elo);
+          }
+      } else {
+           console.log('Empate, no se actualiza ELO en localStorage.');
+      }
     } catch (error) {
         console.error("Error al finalizar la partida y actualizar ELO:", error);
     }

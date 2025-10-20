@@ -33,6 +33,7 @@ interface Stats
 	played: number;
 	victories: number;
 	defeats: number;
+	draws: number;
 }
 
 
@@ -94,7 +95,7 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 		return;
 	}
 
-	const stats: Stats = { played: 0, victories: 0, defeats: 0 };
+	const stats: Stats = { played: 0, victories: 0, defeats: 0, draws: 0 };
 	let history: Match[] = [];
 	try {
 		const historyResponse = await authenticatedFetch(`/api/match/getall?user_id=${user.id}`);
@@ -106,16 +107,21 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 
 		stats.played = history.length;
 		stats.victories = history.filter(match => {
+			if (match.player_one_points === match.player_two_points) return false;
 			const isPlayerOne = match.player_one_id === user.id;
 			return isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
 		}).length;
-		stats.defeats = stats.played - stats.victories;
+		stats.draws = history.filter(match => match.player_one_points === match.player_two_points).length; // Contar empates
+		stats.defeats = stats.played - stats.victories - stats.draws; // Ajustar derrotas
 
 	} catch (error) {
 		console.error("Failed to load match history and stats:", (error as Error).message);
+		stats.played = 0;
+		stats.victories = 0;
+		stats.defeats = 0;
+		stats.draws = 0;
 	}
 
-	console.log("User object JUST BEFORE rendering HTML:", user);
 	appElement.innerHTML = `
 	<div class="h-screen flex flex-col items-center justify-start p-4 text-white overflow-y-auto">
 		<div class="w-full flex justify-center mt-10 md:mt-20 mb-8">
@@ -166,7 +172,7 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 			<div class="col-span-1 lg:col-span-2 space-y-8 lg:flex lg:flex-col">
 				<div class="bg-gray-800 bg-opacity-75 p-6 rounded-lg border-2 border-cyan-400 shadow-lg">
 					<h3 class="text-xl md:text-2xl font-bold mb-4">${i18next.t('statistics')}</h3>
-					<div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+					<div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
 						<div>
 							<p class="text-3xl md:text-4xl font-bold text-cyan-300">${stats.played}</p>
 							<p class="text-gray-400 text-sm">${i18next.t('matches')}</p>
@@ -179,8 +185,12 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 							<p class="text-3xl md:text-4xl font-bold text-red-400">${stats.defeats}</p>
 							<p class="text-gray-400 text-sm">${i18next.t('defeats')}</p>
 						</div>
+                        <div>
+							<p class="text-3xl md:text-4xl font-bold text-yellow-400">${stats.draws}</p>
+							<p class="text-gray-400 text-sm">${i18next.t('drawsStat')}</p> 
+						</div>
 						<div>
-							<p class="text-3xl md:text-4xl font-bold text-yellow-400">${(stats.played > 0 ? (stats.victories / stats.played) * 100 : 0).toFixed(1)}%</p>
+							<p class="text-3xl md:text-4xl font-bold text-blue-400">${(stats.played > 0 ? (stats.victories / (stats.played - stats.draws)) * 100 : 0).toFixed(1)}%</p>
 							<p class="text-gray-400 text-sm">${i18next.t('winRate')}</p>
 						</div>
 					</div>
@@ -192,7 +202,18 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 						${history.length > 0 ? history.map(match =>
 						{
 							const isPlayerOne = match.player_one_id === user.id;
-							const result = (isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points) ? i18next.t('victory') : i18next.t('defeat');
+							let result = '';
+							let resultClass = '';
+
+							if (match.player_one_points === match.player_two_points) {
+								result = i18next.t('drawResult');
+								resultClass = 'text-yellow-400';
+							} else {
+								const didWin = isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
+								result = didWin ? i18next.t('victory') : i18next.t('defeat');
+								resultClass = didWin ? 'text-green-400' : 'text-red-400';
+							}
+
 							const score = isPlayerOne ? `${match.player_one_points}-${match.player_two_points}` : `${match.player_two_points}-${match.player_one_points}`;
 							const opponent = isPlayerOne ? match.player_two : match.player_one;
 							const opponentUsername = opponent ? opponent.username : 'Desconocido';
@@ -202,7 +223,7 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 							<div class="flex flex-wrap justify-between items-center bg-gray-700 p-3 rounded text-sm md:text-base">
 								<p class="font-bold text-cyan-300">${gameName}</p>
 								<p>${i18next.t('vs')} <span class="font-bold">${opponentUsername}</span></p>
-								<p class="${result === i18next.t('victory') ? 'text-green-400' : 'text-red-400'} font-bold">${result}</p>
+								<p class="${resultClass} font-bold">${result}</p>
 								<p class="font-mono bg-gray-900 px-2 py-1 rounded">${score}</p>
 							</div>
 						`}).join('') : `<p class="text-center text-gray-400">${i18next.t('noMatchHistory')}</p>`}
@@ -262,7 +283,7 @@ async function setupProfileEditing(user: User)
 			const updatedUser = await response.json();
 			localStorage.setItem('user', JSON.stringify(updatedUser));
 			alert(i18next.t('profileUpdated'));
-			location.reload();
+			location.reload(); // Recarga para ver cambios
 		}
 		catch (error)
 		{
@@ -284,12 +305,14 @@ function setupAvatarUpload(user: User) {
             avatarImg.src = reader.result as string;
         };
         reader.readAsDataURL(file);
+
         const formData = new FormData();
         formData.append('avatar', file);
+
         try {
-            const response = await authenticatedFetch('/api/users/avatar', {
+            const response = await authenticatedFetch('/api/users/avatar', { // Asegúrate que esta es la ruta correcta
                 method: 'POST',
-                body: formData,
+                body: formData, // No necesitas 'Content-Type', fetch lo deduce para FormData
             });
 
             const result = await response.json();
@@ -300,13 +323,13 @@ function setupAvatarUpload(user: User) {
 
             const updatedUser = { ...user, avatar_url: result.avatarUrl };
             localStorage.setItem('user', JSON.stringify(updatedUser));
-            avatarImg.src = `${result.avatarUrl}?t=${new Date().getTime()}`;
+            avatarImg.src = `${result.avatarUrl}?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
             alert(i18next.t('profileUpdated'));
 
         } catch (error) {
             console.error('Error al subir avatar:', error);
             alert(`Error: ${(error as Error).message}`);
-            avatarImg.src = user.avatar_url || `/assets/placeholder.png`;
+            avatarImg.src = user.avatar_url ? `${user.avatar_url}?t=${new Date().getTime()}` : `/assets/placeholder.png`;
         }
     });
 }
@@ -380,7 +403,7 @@ function showEnable2FAModal(qrCode: string)
 	document.getElementById('verify-2fa-btn')?.addEventListener('click', async () =>
 	{
 		const code = (document.getElementById('2fa-code-input') as HTMLInputElement).value;
-		if (code.length !== 6) return alert(i18next.t('enterValid6DigitCode'));
+		if (!/^\d{6}$/.test(code)) return alert(i18next.t('enterValid6DigitCode')); // Validar que sean 6 dígitos
 
 		try
 		{
@@ -391,9 +414,12 @@ function showEnable2FAModal(qrCode: string)
 				},
 				body: JSON.stringify({ code }),
 			});
-			if (!response.ok) throw new Error(i18next.t('incorrectVerificationCode'));
 
+			const data = await response.json(); // Leer respuesta siempre
+
+			if (!response.ok) throw new Error(data.message || i18next.t('incorrectVerificationCode'));
 			alert(i18next.t('2faEnabledSuccess'));
+
 			const user: User | null = JSON.parse(localStorage.getItem('user') || 'null');
 			if (user)
 			{
@@ -401,7 +427,7 @@ function showEnable2FAModal(qrCode: string)
 				localStorage.setItem('user', JSON.stringify(user));
 			}
 			modal.classList.add('hidden');
-			renderProfile(document.getElementById('app') as HTMLElement);
+			setup2FA(user!); // Llamar setup2FA para refrescar la sección en la página principal
 		}
 		catch (error)
 		{
@@ -438,7 +464,7 @@ function showDisable2FAModal()
 		const password = (document.getElementById('password-input') as HTMLInputElement).value;
 		const code = (document.getElementById('2fa-code-input') as HTMLInputElement).value;
 
-		if (!password || !code) return alert(i18next.t('fillBothFields'));
+		if (!password || !/^\d{6}$/.test(code)) return alert(i18next.t('fillBothFields')); // Validar código también
 
 		try
 		{

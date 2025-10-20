@@ -78,6 +78,8 @@
     "matches": "Partidas",
     "victories": "Victorias",
     "defeats": "Derrotas",
+    "drawsStat": "Empates", 
+    "drawResult": "Empate",
     "winRate": "Ratio Victorias",
     "matchHistory": "Historial de Partidas",
     "vs": "vs",

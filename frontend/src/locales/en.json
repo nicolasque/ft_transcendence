@@ -78,6 +78,8 @@
     "matches": "Matches",
     "victories": "Victories",
     "defeats": "Defeats",
+    "drawsStat": "Draws",  
+    "drawResult": "Draw",
     "winRate": "Win Rate",
     "matchHistory": "Match History",
     "vs": "vs",
