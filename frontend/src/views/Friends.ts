@@ -96,26 +96,31 @@ export function renderFriends(appElement: HTMLElement): void {
         loadChatHistory(userId);
     }
 
-    async function loadChatHistory(withUserId: number) {
-        try {
-            const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
-            const messages: Message[] = await response.json();
-            
-            chatHistory.innerHTML = '';
-            
-            messages.filter(msg => !blockedUserIds.has(msg.sender_id))
-                .forEach(msg => {
-                    const isCurrentUser = msg.sender_id === currentUser.id;
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}`;
-                    messageDiv.innerHTML = `<p class="text-sm text-white">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
-                    chatHistory.appendChild(messageDiv);
-                });
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        } catch (error) {
-            chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
-        }
-    }
+	async function loadChatHistory(withUserId: number) {
+		try {
+			const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
+			const messages: Message[] = await response.json();
+			
+			// Filtro para mostrar solo mensajes con ID impar
+			const oddIdMessages = messages.filter(msg => msg.id % 2 !== 0);
+	
+			chatHistory.innerHTML = '';
+			
+			oddIdMessages.filter(msg => !blockedUserIds.has(msg.sender_id)).forEach(msg => {
+				const isCurrentUser = msg.sender_id === currentUser.id;
+				const messageDiv = document.createElement('div');
+				messageDiv.className = `p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}`;
+				messageDiv.innerHTML = `<p class="text-sm text-white">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
+				chatHistory.appendChild(messageDiv);
+			});
+	
+			chatHistory.scrollTop = chatHistory.scrollHeight;
+		} 
+		catch (error) 
+		{
+			chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
+		}
+	}
     
     async function sendMessage() {
         if (!currentChatUserId || !chatInput.value.trim()) return;
