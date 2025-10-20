@@ -72,7 +72,7 @@ class ChatController {
             // CORRECCIÓN: Usar el nombre del parámetro de la ruta
             const { otherUserId } = req.params;
 
-            const withUser = await UserModel.findByPk(otherUserId);
+			const withUser = await UserModel.findByPk(Number(otherUserId));
             if (!withUser) {
                 return res.status(404).send({ status: false, message: "El usuario con el que quieres chatear no existe." });
             }
