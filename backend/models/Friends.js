@@ -26,7 +26,7 @@ const FriendModel = db.define('friend', {
         }
     },
     state: {
-        type: sequelize.ENUM('pending', 'accepted', 'refused'),
+        type: sequelize.ENUM('pending', 'accepted', 'refused', 'blocked'),
         allowNull: false,
         defaultValue: 'pending',
     }

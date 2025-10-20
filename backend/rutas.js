@@ -119,6 +119,12 @@ const rutas = [
 		preHandler: authMiddleware,
 		handler: FriendControler.deleteFriend
 	},
+	{
+		method: "PUT",
+		url: "/friends/update/:friendshipId",
+		preHandler: authMiddleware,
+		handler: FriendControler.update
+	},
 
 	// Rutas de chat
 	{
