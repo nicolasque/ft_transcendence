@@ -83,16 +83,12 @@ async function start() {
 // Graceful shutdown
 async function shutdown() {
     console.log('🛑 Cerrando servidor...');
-    
-    // Detener job de inactividad
     stopActivityCheck(activityCheckId);
-    
-    // Cerrar servidor Fastify
+
     await fastify.close();
-    
-    // Cerrar conexión DB
+
     await db.close();
-    
+
     console.log('✅ Servidor cerrado correctamente');
     process.exit(0);
 }
