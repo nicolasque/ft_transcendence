@@ -16,7 +16,7 @@ export const INITIAL_BALL_SPEED = 10;
 export const ACCELERATION_FACTOR = 1.05;
 export const MAX_BOUNCE_ANGLE = Math.PI / 4;
 export const PADDLE_INFLUENCE_FACTOR = 0.3;
-export const MAX_BALL_SPEED = 18;
+export const MAX_BALL_SPEED = 30;
 
 // --- DIFICULTAD MODIFICADA ---
 export const DIFFICULTY_LEVELS: Record<DifficultyLevel, DifficultyConfig> = {
