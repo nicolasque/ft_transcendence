@@ -121,7 +121,13 @@ export function renderFriends(appElement: HTMLElement): void {
 			chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
 		}
 	}
-    
+
+    const intervalId = setInterval(() => {
+        if (currentChatUserId) {
+            loadChatHistory(currentChatUserId);
+        }
+    }, 500);
+
     async function sendMessage() {
         if (!currentChatUserId || !chatInput.value.trim()) return;
         try {
