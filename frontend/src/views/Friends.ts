@@ -25,8 +25,8 @@ interface Message {
 // Estado local para gestionar usuarios bloqueados (solo frontend)
 const blockedUserIds = new Set<number>();
 
-export function renderFriends(appElement: HTMLElement): void {
-    if (!appElement) return;
+export function renderFriends(appElement: HTMLElement):void  {
+    if (!appElement) return ;
 
     const sentRequestIds = new Set<number>();
 
@@ -68,9 +68,10 @@ export function renderFriends(appElement: HTMLElement): void {
         </div>
     </div>
     `;
+	document.getElementById('homeButton')?.addEventListener('click', () => {navigate('/start'), ft_stop_chat(intervalId)});
 
     playTrack('/assets/Techno_Syndrome.mp3');
-    document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+
 
     const friendsContainer = document.getElementById('friends-container')!;
     const usersContainer = document.getElementById('users-container')!;
@@ -95,6 +96,13 @@ export function renderFriends(appElement: HTMLElement): void {
         chatColumn.classList.remove('hidden');
         loadChatHistory(userId);
     }
+
+	function closeChat(userId: number, username: string) {
+		currentChatUserId = userId;
+        chatWithUsername.textContent = username;
+		chatColumn.classList.add('hidden');
+		ft_stop_chat(intervalId);
+	}
 
 	async function loadChatHistory(withUserId: number) {
 		try {
@@ -122,11 +130,31 @@ export function renderFriends(appElement: HTMLElement): void {
 		}
 	}
 
-    const intervalId = setInterval(() => {
-        if (currentChatUserId) {
-            loadChatHistory(currentChatUserId);
-        }
-    }, 500);
+	function startActivityCheck(currentChatUserId) {
+		loadChatHistory(currentChatUserId);
+		intervalId = setInterval(() => {
+			if (currentChatUserId) {
+				loadChatHistory(currentChatUserId);
+			}
+			// console.log("Mensaje pedido: "+ currentChatUserId);
+		}, 500);
+
+		const DURATION_MS = 400000;
+		setTimeout(() => {
+            ft_stop_chat(intervalId);
+            console.log(`✅ Job de chat detenido automáticamente tras ${DURATION_MS / 1000} segundos.`);
+        }, DURATION_MS);
+
+		return (intervalId);
+	}
+
+
+	const ft_stop_chat = function ft_stop_chativity(intervalId) {
+		if (intervalId) {
+			clearInterval(intervalId);
+			console.log('✅ Job de chat detenido');
+		}
+	}
 
     async function sendMessage() {
         if (!currentChatUserId || !chatInput.value.trim()) return;
@@ -166,6 +194,9 @@ export function renderFriends(appElement: HTMLElement): void {
         }
     }
 
+	let intervalId;
+	ft_stop_chat(intervalId);
+
     async function loadFriends() {
         try {
             const friends: User[] = await authenticatedFetch('/api/friends').then(res => res.json());
@@ -188,20 +219,31 @@ export function renderFriends(appElement: HTMLElement): void {
     }
 
     function attachFriendButtonListeners() {
-        friendsContainer.querySelectorAll('.chat-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            const target = e.currentTarget as HTMLElement;
+		friendsContainer.querySelectorAll('.chat-btn').forEach(btn => btn.addEventListener('click', (e) => {
+			const target = e.currentTarget as HTMLElement;
+			closeChat(parseInt(target.dataset.userId!), target.dataset.username!);
             openChat(parseInt(target.dataset.userId!), target.dataset.username!);
+			ft_stop_chat(intervalId);
+			intervalId = startActivityCheck(currentChatUserId);
         }));
         friendsContainer.querySelectorAll('.play-btn').forEach(btn => btn.addEventListener('click', (e) => {
             const target = e.currentTarget as HTMLElement;
             handlePlayInvite(target.dataset.userId!, target.dataset.username!);
+			closeChat(parseInt(target.dataset.userId!), target.dataset.username!);
+			ft_stop_chat(intervalId);
         }));
         friendsContainer.querySelectorAll('.profile-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            const userId = (e.currentTarget as HTMLElement).dataset.userId;
+			const target = e.currentTarget as HTMLElement;
+			const userId = (e.currentTarget as HTMLElement).dataset.userId;
+			closeChat(parseInt(target.dataset.userId!), target.dataset.username!);
             navigate(`/profile/${userId}`);
+			ft_stop_chat(intervalId);
         }));
         friendsContainer.querySelectorAll('.block-toggle-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            handleBlockToggle(parseInt((e.currentTarget as HTMLElement).dataset.userId!));
+			const target = e.currentTarget as HTMLElement;
+			handleBlockToggle(parseInt((e.currentTarget as HTMLElement).dataset.userId!));
+			closeChat(parseInt(target.dataset.userId!), target.dataset.username!);
+			ft_stop_chat(intervalId);
         }));
     }
 
@@ -261,6 +303,7 @@ export function renderFriends(appElement: HTMLElement): void {
             usersContainer.innerHTML = `<div class="text-red-500 p-2">${(error as Error).message}</div>`;
         }
     }
+
 
     async function sendFriendRequest(fromId: number, toId: number) {
         try {
