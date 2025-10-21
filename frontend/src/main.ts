@@ -60,11 +60,12 @@ import { renderLogin } from './views/Login.ts';
 import { renderStart } from './views/Start.ts';
 import { renderCharQP } from './views/CharQP.ts';
 import { renderProfile } from './views/Profile.ts';
-import { renderFriendProfile } from './views/FriendProfile.ts'; // Importar la nueva vista
+import { renderFriendProfile } from './views/FriendProfile.ts';
 import { renderAbout } from './views/About.ts';
 import { initializePongGame } from './views/Pong.ts';
 import { renderTicTacToe } from './views/TicTacToe.ts';
 import { renderFriends } from './views/Friends.ts';
+import { renderTournament } from './views/Tournament.ts';
 
 const appElement = document.querySelector('#app') as HTMLDivElement;
 
@@ -77,11 +78,12 @@ const routes: { [key: string]: (element: HTMLElement) => void } =
 	'/charQP': protectedRoute(renderCharQP),
 	'/ticTacToe': protectedRoute(renderTicTacToe),
 	'/profile': protectedRoute(renderProfile),
-    '/profile/:id': protectedRoute(renderFriendProfile), // Nueva ruta dinámica
+    '/profile/:id': protectedRoute(renderFriendProfile),
 	'/about': protectedRoute(renderAbout),
 	'/pong': protectedRoute(initializePongGame),
 	'/tictactoe': protectedRoute(renderTicTacToe),
 	'/friends': protectedRoute(renderFriends),
+	'/tournament': protectedRoute(renderTournament),
 };
 
 function router()
@@ -90,11 +92,12 @@ function router()
 		return;
     const path = window.location.pathname;
     
-    // Soporte para rutas dinámicas
-    const dynamicRoute = Object.keys(routes).find(route => {
+    const dynamicRoute = Object.keys(routes).find(route => // Rutas dinámicas
+	{
         const routeParts = route.split('/').filter(p => p);
         const pathParts = path.split('/').filter(p => p);
-        if (routeParts.length !== pathParts.length) return false;
+        if (routeParts.length !== pathParts.length) 
+			return false;
         return routeParts.every((part, i) => part.startsWith(':') || part === pathParts[i]);
     });
     
@@ -114,7 +117,7 @@ export function navigate(path: string)
 
 window.addEventListener('popstate', router);
 
-document.addEventListener('click', (event) =>
+document.addEventListener('click', (event) => // Cambio de idiomas
 {
 	const target = event.target as HTMLElement;
 	const langSwitcher = target.closest('#language-switcher'); // Comprobar si el elemento clickeado o uno de sus padres está dentro de #language-switcher

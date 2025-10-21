@@ -90,14 +90,7 @@ export function renderStart(appElement: HTMLElement): void
     }
 
     if (tournamentButton)
-	{
-        tournamentButton.addEventListener('click', () =>
-		{
-            localStorage.setItem('nextRoute', '/tournament');
-            navigate('/charQP');
-            initializeAudio();
-        });
-    }
+		tournamentButton.addEventListener('click', () => {navigate('/tournament'); initializeAudio(); });
 
     if (ticTacToeButton)
         ticTacToeButton.addEventListener('click', () => {navigate('/ticTacToe'); initializeAudio(); });
