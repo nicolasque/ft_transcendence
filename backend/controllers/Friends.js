@@ -53,6 +53,17 @@ class FriendControler {
 		}
 	}
 
+	async getAll(req, res) {
+		try {
+			const where = {...req.query};
+
+			const lista = await FriendModel.findAll({where});
+			res.status(200).send(lista);
+		}catch (e) {
+			res.status(500).send({ error: e.message });
+		}
+	}
+
 	async getFriends(req, res) {
 		try {
 			const userId = req.user.id;

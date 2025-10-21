@@ -102,6 +102,12 @@ const rutas = [
         handler: FriendControler.getFriendRequests
     },
 	{
+        method: "GET",
+        url: "/friends/getAll",
+        preHandler: authMiddleware,
+        handler: FriendControler.getAll
+    },
+	{
 		method: "POST",
 		url: "/friends/accept/:friendshipId",
 		preHandler: authMiddleware,
