@@ -1,4 +1,5 @@
 *.txt
+/backend/uploads/
 node_modules/
 *.sqlite
 .env
