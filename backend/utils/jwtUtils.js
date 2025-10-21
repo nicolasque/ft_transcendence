@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
 import SessionModel from '../models/Session.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'tu_clave_secreta_muy_segura_cambiar_en_produccion';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1h'; // 1 hora
-const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '7d'; // 7 días
+const JWT_SECRET = process.env.JWT_SECRET || process.env.CLAVE_PRIVADA;
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || process.env.EXPIRE_IN;
+const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || process.env.REFRESH_TOKEN;
 
 class JWTUtils {
 	/**

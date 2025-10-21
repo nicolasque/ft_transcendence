@@ -64,7 +64,7 @@ async function start() {
   try {
     await database();
     await fastify.listen({
-      port: Number(process.env.PORT) || 9000,
+      port: Number(process.env.PORT),
       host: '0.0.0.0'
     });
     

@@ -20,7 +20,7 @@ export function initializePongGame(container: HTMLElement) {
 	`;
 
 	playTrack('/assets/DangerZone.mp3');
-    document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+	document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
 
 	const canvas = container.querySelector('#pong-canvas') as HTMLCanvasElement;
 	const context = canvas.getContext('2d')!;
@@ -340,16 +340,36 @@ export function initializePongGame(container: HTMLElement) {
 
 	async function startGame() {
 		if (gameState === 'PLAYING') return;
-	  
+
 		const user = JSON.parse(localStorage.getItem('user') || '{}');
+		if (!user.id) {
+		  alert("Error: Usuario no encontrado. Por favor, inicie sesión de nuevo.");
+		  navigate('/login');
+		  return;
+		}
 		const player_one_id = user.id;
-		const player_two_id = (gameMode === 'ONE_PLAYER') ? 0 : -1; 
-	  
+
+		let player_two_id: number | null = null;
+		let match_type: string = 'local';
+
+		const opponentIdStr = localStorage.getItem('opponentId');
+
+		if (gameMode === 'ONE_PLAYER') {
+		  match_type = 'ia';
+		} else if (gameMode === 'TWO_PLAYERS' && opponentIdStr) {
+			player_two_id = parseInt(opponentIdStr, 10);
+			match_type = 'friends';
+			console.log(`Iniciando partida 1v1 contra amigo ID: ${player_two_id}`);
+		} else if (gameMode === 'TWO_PLAYERS' && !opponentIdStr) {
+			match_type = 'local';
+			console.log(`Iniciando partida local 2P (vs guess)`);
+		}
+
 		const matchData = {
 		  player_one_id: player_one_id,
-		  player_two_id: player_two_id,
-		  game: 'pong',
-		  match_type: gameMode === 'ONE_PLAYER' ? 'ia' : 'local',
+		  ...(player_two_id !== null && { player_two_id: player_two_id }),
+	 	  game: 'pong',
+		  match_type: match_type,
 		  match_status: 'playing',
 		};
 	  
@@ -361,7 +381,7 @@ export function initializePongGame(container: HTMLElement) {
 		  });
 	  
 		  if (!response.ok) {
-            const errorData = await response.json();
+			const errorData = await response.json();
 			throw new Error(errorData.error?.message || 'Failed to create match on the server.');
 		  }
 	  
