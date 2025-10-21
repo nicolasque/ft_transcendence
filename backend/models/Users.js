@@ -75,7 +75,7 @@ const UserModel = db.define('users', {
 	]
 });
 
-const SALT_ROUNDS = Number(process.env.SALT_ROUNDS) || 10;
+const SALT_ROUNDS = Number(process.env.SALT_ROUNDS);
 
 //Logica para haseo de la contraseña
 UserModel.beforeCreate(async (user) => {
