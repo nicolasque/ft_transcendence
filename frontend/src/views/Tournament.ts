@@ -24,8 +24,8 @@ export function renderTournament(appElement: HTMLElement): void {
     }
 
     appElement.innerHTML = `
-    <div class="h-screen flex flex-col items-center p-4 md:p-8 relative overflow-y-auto font-press-start">
-        <div class="w-full flex justify-center mb-8">
+    <div class="h-screen flex flex-col items-center p-4 md:p-8 overflow-y-auto font-press-start">
+        <div class="w-full flex justify-center mb-8 flex-shrink-0">
             <button id="homeButton" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
                 <img src="/assets/logo.gif" alt="Game Logo" class="w-full max-w-sm md:max-w-2xl">
             </button>
@@ -57,10 +57,17 @@ export function renderTournament(appElement: HTMLElement): void {
                     </div>
                 </div>
                 <div id="participants-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg flex-grow"></div>
+                
+                <div class="mt-8 md:hidden">
+                    <button id="start-tournament-button-mobile" class="relative w-64 h-[60px] cursor-pointer transform hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+                        <img src="${i18next.t('img.accept')}" alt="${i18next.t('accept')}" class="absolute inset-0 w-full h-full object-contain">
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="mt-8">
-            <button id="start-tournament-button" class="relative w-64 h-[60px] md:w-80 md:h-[75px] cursor-pointer transform hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+        
+        <div class="mt-8 hidden md:block flex-shrink-0">
+            <button id="start-tournament-button-desktop" class="relative w-80 md:h-[75px] cursor-pointer transform hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
                 <img src="${i18next.t('img.accept')}" alt="${i18next.t('accept')}" class="absolute inset-0 w-full h-full object-contain">
             </button>
         </div>
@@ -72,7 +79,18 @@ export function renderTournament(appElement: HTMLElement): void {
 
     const friendsContainer = document.getElementById('friends-container')!;
     const participantsContainer = document.getElementById('participants-container')!;
+    const startTournamentButtonMobile = document.getElementById('start-tournament-button-mobile');
+    const startTournamentButtonDesktop = document.getElementById('start-tournament-button-desktop');
 
+    function handleStartTournament() {
+        // Lógica para iniciar el torneo
+        alert(`Iniciando torneo con ${participants.length} participantes.`);
+        // Aquí iría la llamada a la API para crear el torneo y navegar a la siguiente vista
+    }
+
+    startTournamentButtonMobile?.addEventListener('click', handleStartTournament);
+    startTournamentButtonDesktop?.addEventListener('click', handleStartTournament);
+    
     function updateParticipantsList() {
         participantsContainer.innerHTML = participants.map((p, index) => `
             <div class="flex justify-between items-center text-white p-2">
@@ -98,7 +116,6 @@ export function renderTournament(appElement: HTMLElement): void {
             <div class="flex justify-between items-center text-white p-2 hover:bg-gray-800 rounded-lg mb-2">
                 <span class="font-bold text-xl truncate" style="max-width: 150px;">${friend.username}</span>
                 <div class="flex gap-2">
-                    <button class="chat-btn" data-user-id="${friend.id}" data-username="${friend.username}"><img src="${i18next.t('img.chat')}" class="h-8"></button>
                     <button class="profile-btn" data-user-id="${friend.id}"><img src="${i18next.t('img.profile')}" class="h-8"></button>
                     <button class="add-participant-btn" data-user-id="${friend.id}" data-username="${friend.username}" data-user-email="${friend.email}" data-user-elo="${friend.elo}"><img src="${i18next.t('img.add')}" class="h-8"></button>
                 </div>
@@ -117,12 +134,9 @@ export function renderTournament(appElement: HTMLElement): void {
     }
 
     function attachFriendButtonListeners() {
-        friendsContainer.querySelectorAll('.chat-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            console.log('Chat with ' + (e.currentTarget as HTMLElement).dataset.username);
-        }));
-
         friendsContainer.querySelectorAll('.profile-btn').forEach(btn => btn.addEventListener('click', (e) => {
             const userId = (e.currentTarget as HTMLElement).dataset.userId;
+            localStorage.setItem('fromTournament', 'true');
             navigate(`/profile/${userId}`);
         }));
 
@@ -141,7 +155,7 @@ export function renderTournament(appElement: HTMLElement): void {
                 participants.push({ id: userId, username, email, elo });
                 updateParticipantsList();
                 renderFriendsList();
-            }git
+            }
         }));
     }
 

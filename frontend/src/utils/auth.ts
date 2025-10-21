@@ -24,7 +24,7 @@ export function protectedRoute(viewFunction: (element: HTMLElement) => void): (e
 		const user = localStorage.getItem('user');
 		if (!user)
 		{
-		    navigate('/login');
+		    navigate('/home');
 		    return;
 		}
 		viewFunction(element);

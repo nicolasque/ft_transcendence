@@ -161,7 +161,7 @@ export async function renderFriendProfile(appElement: HTMLElement): Promise<void
                     </div>
                 </div>
             </div>
-             <button id="backToFriends" class="relative w-[250px] h-[75px] cursor-pointer transform hover:scale-125 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg mt-8">
+             <button id="backButton" class="relative w-[250px] h-[75px] cursor-pointer transform hover:scale-125 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg mt-8">
                 <img src="${i18next.t('img.return')}" alt="${i18next.t('return')}" class="absolute inset-0 w-full h-full object-contain drop-shadow-lg hover:drop-shadow-xl">
             </button>
         </div>
@@ -169,11 +169,30 @@ export async function renderFriendProfile(appElement: HTMLElement): Promise<void
 
         playTrack('/assets/Techno_Syndrome.mp3');
         document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
-        document.getElementById('backToFriends')?.addEventListener('click', () => navigate('/friends'));
+        
+        const backButton = document.getElementById('backButton');
+        backButton?.addEventListener('click', () => {
+            const fromTournament = localStorage.getItem('fromTournament');
+            if (fromTournament === 'true') {
+                localStorage.removeItem('fromTournament');
+                navigate('/tournament');
+            } else {
+                navigate('/friends');
+            }
+        });
 
     } catch (error) {
         console.error("Failed to load friend profile:", (error as Error).message);
-        appElement.innerHTML = `<div class="text-white text-center p-8"><h1>${i18next.t('errorLoadingUserDetails', { error: (error as Error).message })}</h1><button id="backToFriendsFallback" class="mt-4 bg-cyan-600 px-4 py-2 rounded">${i18next.t('return')}</button></div>`;
-        document.getElementById('backToFriendsFallback')?.addEventListener('click', () => navigate('/friends'));
+        appElement.innerHTML = `<div class="text-white text-center p-8"><h1>${i18next.t('errorLoadingUserDetails', { error: (error as Error).message })}</h1><button id="backButtonFallback" class="mt-4 bg-cyan-600 px-4 py-2 rounded">${i18next.t('return')}</button></div>`;
+        const backButtonFallback = document.getElementById('backButtonFallback');
+        backButtonFallback?.addEventListener('click', () => {
+            const fromTournament = localStorage.getItem('fromTournament');
+            if (fromTournament === 'true') {
+                localStorage.removeItem('fromTournament');
+                navigate('/tournament');
+            } else {
+                navigate('/friends');
+            }
+        });
     }
 }
