@@ -182,8 +182,14 @@ const rutas = [
 	{
 		method: "POST",
 		url: "/tournaments",
-		// preHandler: authMiddleware,
+		preHandler: authMiddleware,
 		handler: TournamentController.createTournament
+	},
+	{
+		method: "POST",
+		url: "/tournaments/finish/:id",
+		preHandler: authMiddleware,
+		handler: TournamentController.finishTournament
 	}
 
 	//TODO: Metodos y rutas para los torneos

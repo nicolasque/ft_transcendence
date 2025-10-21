@@ -139,7 +139,7 @@ export function renderFriends(appElement: HTMLElement):void  {
 			// console.log("Mensaje pedido: "+ currentChatUserId);
 		}, 500);
 
-		const DURATION_MS = 400000;
+		const DURATION_MS = 300000; //se pone en modo no en directo, cuando pasa mas de el tiempo qe lo pone ofline
 		setTimeout(() => {
             ft_stop_chat(intervalId);
             console.log(`✅ Job de chat detenido automáticamente tras ${DURATION_MS / 1000} segundos.`);
