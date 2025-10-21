@@ -97,6 +97,19 @@
     "return": "Return",
     "participants": "Participants",
 	"remove": "Remove",
+    "maxParticipantsReached": "Maximum number of participants reached.",
+    "errorUserNotFound": "Error: User not found. Please, log in again.",
+    "errorCreatingMatch": "Error creating the match: {{error}}",
+    "errorSendingMessage": "Error sending message.",
+    "errorStartingGame": "Error starting the game: {{error}}",
+    "userNotAuthenticated": "User not authenticated.",
+    "sessionExpired": "Session has expired. Please log in again.",
+    "couldNotRefreshToken": "Could not refresh token.",
+	"nextRound": "Next Round",
+    "confirmLeaveTournament": "Are you sure you want to leave the tournament? Your progress will be lost.",
+    "matchesNotFinished": "There are still matches to be played.",
+    "tournamentWinner": "Tournament Winner",
+    "play": "Play",
     "img": {
         "login": "/assets/en/login.png",
         "register": "/assets/en/register.png",
@@ -127,6 +140,8 @@
         "block": "/assets/en/block.png",
         "return": "/assets/en/return.png",
         "participants": "/assets/en/participants.png",
-		"remove": "/assets/en/remove.png"
+		"remove": "/assets/en/remove.png",
+		"nextRound": "/assets/en/nextRound.png",
+        "play": "/assets/en/play.png"
     }
 }

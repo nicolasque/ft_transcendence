@@ -8,7 +8,8 @@ interface User {
     username: string;
     email: string;
     elo: number;
-    avatar?: string;
+    avatar_url?: string;
+    isAI: boolean;
 }
 
 let participants: User[] = [];
@@ -20,7 +21,7 @@ export function renderTournament(appElement: HTMLElement): void {
 
     const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
     if (participants.length === 0 || participants[0].id !== currentUser.id) {
-        participants = [currentUser];
+        participants = [{...currentUser, isAI: false}];
     }
 
     appElement.innerHTML = `
@@ -83,9 +84,9 @@ export function renderTournament(appElement: HTMLElement): void {
     const startTournamentButtonDesktop = document.getElementById('start-tournament-button-desktop');
 
     function handleStartTournament() {
-        // Lógica para iniciar el torneo
-        alert(`Iniciando torneo con ${participants.length} participantes.`);
-        // Aquí iría la llamada a la API para crear el torneo y navegar a la siguiente vista
+        localStorage.setItem('tournamentParticipants', JSON.stringify(participants));
+        localStorage.setItem('tournamentSize', tournamentSize.toString());
+        navigate('/matchmaking');
     }
 
     startTournamentButtonMobile?.addEventListener('click', handleStartTournament);
@@ -117,7 +118,7 @@ export function renderTournament(appElement: HTMLElement): void {
                 <span class="font-bold text-xl truncate" style="max-width: 150px;">${friend.username}</span>
                 <div class="flex gap-2">
                     <button class="profile-btn" data-user-id="${friend.id}"><img src="${i18next.t('img.profile')}" class="h-8"></button>
-                    <button class="add-participant-btn" data-user-id="${friend.id}" data-username="${friend.username}" data-user-email="${friend.email}" data-user-elo="${friend.elo}"><img src="${i18next.t('img.add')}" class="h-8"></button>
+                    <button class="add-participant-btn" data-user-id="${friend.id}" data-username="${friend.username}" data-user-email="${friend.email}" data-user-elo="${friend.elo}" data-avatar-url="${friend.avatar_url || ''}"><img src="${i18next.t('img.add')}" class="h-8"></button>
                 </div>
             </div>`).join('') : `<div class="text-gray-400 text-center text-xl">${i18next.t('noFriends')}</div>`;
         
@@ -142,7 +143,7 @@ export function renderTournament(appElement: HTMLElement): void {
 
         friendsContainer.querySelectorAll('.add-participant-btn').forEach(btn => btn.addEventListener('click', (e) => {
             if (participants.length >= tournamentSize) {
-                alert('Número máximo de participantes alcanzado.');
+                alert(i18next.t('maxParticipantsReached'));
                 return;
             }
             const target = e.currentTarget as HTMLElement;
@@ -150,9 +151,10 @@ export function renderTournament(appElement: HTMLElement): void {
             const username = target.dataset.username!;
             const email = target.dataset.userEmail!;
             const elo = parseInt(target.dataset.userElo!);
+            const avatar_url = target.dataset.avatarUrl;
 
             if (!participants.find(p => p.id === userId)) {
-                participants.push({ id: userId, username, email, elo });
+                participants.push({ id: userId, username, email, elo, avatar_url, isAI: false });
                 updateParticipantsList();
                 renderFriendsList();
             }
@@ -168,6 +170,13 @@ export function renderTournament(appElement: HTMLElement): void {
             });
             button.classList.add('opacity-100', 'border-b-4', 'border-cyan-400');
             button.classList.remove('opacity-50');
+
+            // Limitar participantes si se reduce el tamaño del torneo
+            if (participants.length > tournamentSize) {
+                participants = participants.slice(0, tournamentSize);
+                updateParticipantsList();
+                renderFriendsList();
+            }
         });
     });
 

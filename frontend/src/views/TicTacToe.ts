@@ -57,7 +57,7 @@ export function renderTicTacToe(container: HTMLElement): void {
     isGameActive = true;
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (!user.id) {
-        alert("Error: Usuario no encontrado. Por favor, inicie sesión de nuevo.");
+        alert(i18next.t('errorUserNotFound'));
         navigate('/login');
         return;
     }
@@ -88,7 +88,7 @@ export function renderTicTacToe(container: HTMLElement): void {
         console.log(`Partida de TicTacToe creada con ID: ${matchId}`);
     } catch (error) {
         console.error("Error al iniciar la partida de TicTacToe:", error);
-        alert(`Error al crear la partida: ${(error as Error).message}`);
+        alert(i18next.t('errorCreatingMatch', { error: (error as Error).message }));
         isGameActive = false;
     }
   }
@@ -99,7 +99,7 @@ export function renderTicTacToe(container: HTMLElement): void {
 
     if (!matchId) {
         console.error("No se puede finalizar la partida porque no tiene ID.");
-        winnerMessage.innerHTML = "Error: No se pudo guardar la partida.";
+        winnerMessage.innerHTML = i18next.t('errorCreatingMatch', { error: 'No match ID' });
         return;
     }
 

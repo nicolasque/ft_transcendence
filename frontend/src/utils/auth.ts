@@ -16,6 +16,7 @@
 // ... -> (sintaxis de propagación) toma una estructura de datos (como un objeto o un array) y saca todos sus elementos para ponerlos en otro lugar. Es el equivalente a listar todos los elementos del contenedor, en este caso lo usamos para añadir otro elemento al final (headers).
 
 import { navigate } from '../main';
+import i18next from './i18n';
 
 export function protectedRoute(viewFunction: (element: HTMLElement) => void): (element: HTMLElement) => void 
 {
@@ -37,7 +38,7 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
     if (!token)
     {
         navigate('/login');
-        throw new Error('User not authenticated.');
+        throw new Error(i18next.t('userNotAuthenticated'));
     }
 
     const headers = new Headers(options.headers || {});
@@ -60,7 +61,7 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
             console.error("Token refresh failed. Logging out.");
             localStorage.clear();
             navigate('/login');
-            throw new Error('Session has expired. Please log in again.');
+            throw new Error(i18next.t('sessionExpired'));
         }
     }
     return response;
@@ -85,7 +86,7 @@ async function refreshAccessToken(): Promise<string | null>
         if (!response.ok) 
         {
             const error = await response.json();
-            throw new Error(error.message || 'Could not refresh token.');
+            throw new Error(error.message || i18next.t('couldNotRefreshToken'));
         }
 
         const data = await response.json();

@@ -97,6 +97,19 @@
     "return": "Volver",
     "participants": "Participantes",
 	"remove": "Remover",
+    "maxParticipantsReached": "Número máximo de participantes alcanzado.",
+    "errorUserNotFound": "Error: Usuario no encontrado. Por favor, inicie sesión de nuevo.",
+    "errorCreatingMatch": "Error al crear la partida: {{error}}",
+    "errorSendingMessage": "Error al enviar mensaje.",
+    "errorStartingGame": "Error al iniciar la partida: {{error}}",
+    "userNotAuthenticated": "Usuario no autenticado.",
+    "sessionExpired": "La sesión ha expirado. Por favor, inicie sesión de nuevo.",
+    "couldNotRefreshToken": "No se pudo refrescar el token.",
+	"nextRound": "Siguiente Ronda",
+	"confirmLeaveTournament": "¿Seguro que quieres abandonar el torneo? Tu progreso se perderá.",
+	"matchesNotFinished": "Todavía hay partidas por jugar.",
+	"tournamentWinner": "Ganador del Torneo",
+	"play": "Jugar",
     "img": {
         "login": "/assets/es/login_es.png",
         "register": "/assets/es/register_es.png",
@@ -127,6 +140,8 @@
         "block": "/assets/es/block_es.png",
         "return": "/assets/es/return_es.png",
         "participants": "/assets/es/participants_es.png",
-		"remove": "/assets/es/remove_es.png"
+		"remove": "/assets/es/remove_es.png",
+		"nextRound": "/assets/es/nextRound.png",
+		"play": "/assets/es/play.png"
     }
 }

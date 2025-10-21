@@ -118,7 +118,7 @@ export function renderFriends(appElement: HTMLElement): void {
 		} 
 		catch (error) 
 		{
-			chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
+			chatHistory.innerHTML = `<div class="text-red-500 p-2">${i18next.t('errorLoadingData')}</div>`;
 		}
 	}
 
@@ -138,7 +138,7 @@ export function renderFriends(appElement: HTMLElement): void {
             });
             chatInput.value = '';
             loadChatHistory(currentChatUserId);
-        } catch (error) { alert('Error al enviar mensaje.'); }
+        } catch (error) { alert(i18next.t('errorSendingMessage')); }
     }
 
     chatInput.addEventListener('keydown', (e) => {

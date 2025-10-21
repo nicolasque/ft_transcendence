@@ -12,10 +12,10 @@ export function initializePongGame(container: HTMLElement) {
 			<canvas id="pong-canvas" class="w-full block shadow-2xl shadow-cyan-400/50 border-4 border-cyan-400 bg-black"></canvas>
 			<div id="game-overlay" class="absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center bg-black bg-opacity-75 gap-4">
 			  <h1 id="winner-message" class="text-5xl font-black text-center text-cyan-400 p-4 rounded-lg hidden"></h1>
-			  <button id="start-button" class="px-8 py-4 text-2xl rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-cyan-400 text-gray-900 hover:bg-white">Empezar Partida</button>
+			  <button id="start-button" class="px-8 py-4 text-2xl rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-cyan-400 text-gray-900 hover:bg-white">${i18next.t('startGame')}</button>
 			</div>
 		</main>
-		<button id="homeButton" class="mt-8 px-8 py-4 text-lg rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-gray-700 text-white hover:bg-gray-600">Volver al Inicio</button>
+		<button id="homeButton" class="mt-8 px-8 py-4 text-lg rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-gray-700 text-white hover:bg-gray-600">${i18next.t('return')}</button>
 	  </div>
 	`;
 
@@ -103,7 +103,7 @@ export function initializePongGame(container: HTMLElement) {
 
 		winnerMessage.classList.add('hidden');
 		gameOverlay.classList.remove('hidden');
-		startButton.textContent = 'Empezar Partida';
+		startButton.textContent = i18next.t('startGame');
 	}
 
 	function update() {
@@ -343,7 +343,7 @@ export function initializePongGame(container: HTMLElement) {
 
 		const user = JSON.parse(localStorage.getItem('user') || '{}');
 		if (!user.id) {
-		  alert("Error: Usuario no encontrado. Por favor, inicie sesión de nuevo.");
+		  alert(i18next.t('errorUserNotFound'));
 		  navigate('/login');
 		  return;
 		}
@@ -400,7 +400,7 @@ export function initializePongGame(container: HTMLElement) {
 		  }
 		} catch (error) {
 		  console.error("Error starting game:", error);
-		  alert("Error al iniciar la partida: " + (error as Error).message);
+		  alert(i18next.t('errorStartingGame', { error: (error as Error).message }));
 		}
 	}
 

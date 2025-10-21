@@ -51,7 +51,6 @@
 // event.target => el elemento sobre el que se ha hecho click
 // if (target.tagName === 'BUTTON') => verifica que el click fue en un boton y no en el espacio entre ellos (cualquier click en el contenedor activa)
 
-
 import { protectedRoute } from './utils/auth.ts';
 import i18next from './utils/i18n.ts';
 import { renderHome } from './views/Home.ts';
@@ -63,9 +62,11 @@ import { renderProfile } from './views/Profile.ts';
 import { renderFriendProfile } from './views/FriendProfile.ts';
 import { renderAbout } from './views/About.ts';
 import { initializePongGame } from './views/Pong.ts';
+import { renderPongTournament } from './views/PongTournament.ts';
 import { renderTicTacToe } from './views/TicTacToe.ts';
 import { renderFriends } from './views/Friends.ts';
 import { renderTournament } from './views/Tournament.ts';
+import { renderMatchmaking } from './views/Matchmaking.ts';
 
 const appElement = document.querySelector('#app') as HTMLDivElement;
 
@@ -81,9 +82,11 @@ const routes: { [key: string]: (element: HTMLElement) => void } =
     '/profile/:id': protectedRoute(renderFriendProfile),
 	'/about': protectedRoute(renderAbout),
 	'/pong': protectedRoute(initializePongGame),
+    '/pong-tournament': protectedRoute(renderPongTournament),
 	'/tictactoe': protectedRoute(renderTicTacToe),
 	'/friends': protectedRoute(renderFriends),
 	'/tournament': protectedRoute(renderTournament),
+    '/matchmaking': protectedRoute(renderMatchmaking),
 };
 
 function router()
@@ -92,7 +95,7 @@ function router()
 		return;
     const path = window.location.pathname;
     
-    const dynamicRoute = Object.keys(routes).find(route => // Rutas dinámicas
+    const dynamicRoute = Object.keys(routes).find(route => 
 	{
         const routeParts = route.split('/').filter(p => p);
         const pathParts = path.split('/').filter(p => p);
@@ -117,13 +120,13 @@ export function navigate(path: string)
 
 window.addEventListener('popstate', router);
 
-document.addEventListener('click', (event) => // Cambio de idiomas
+document.addEventListener('click', (event) => 
 {
 	const target = event.target as HTMLElement;
-	const langSwitcher = target.closest('#language-switcher'); // Comprobar si el elemento clickeado o uno de sus padres está dentro de #language-switcher
-	if (!langSwitcher) // Si el clic fue fuera del contenedor de idiomas no hace nada.
+	const langSwitcher = target.closest('#language-switcher');
+	if (!langSwitcher)
 		return;
-	const button = target.closest('button[data-lang]'); // Encontrar el botón específico que fue clickeado
+	const button = target.closest('button[data-lang]');
 	if (button)
 	{
 		const lang = button.getAttribute('data-lang');
