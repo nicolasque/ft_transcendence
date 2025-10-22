@@ -25,16 +25,19 @@ export function renderTicTacToe(container: HTMLElement): void {
         <div id="game-board" class="grid grid-cols-3 gap-2 bg-black">
             ${Array.from({ length: 9 }).map((_, i) => `<div class="cell w-28 h-28 md:w-40 md:h-40 bg-gray-800 flex items-center justify-center text-6xl cursor-pointer border-2 border-cyan-400 hover:bg-gray-700" data-cell-index="${i}" role="button" tabindex="0"></div>`).join('')}
         </div>
+		
         <div id="game-overlay" class="absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center bg-black bg-opacity-75 gap-4" style="display: none;">
-            <h1 id="winner-message" class="text-5xl font-black text-center text-cyan-400 p-4 rounded-lg"></h1>
-            <button id="restart-button" class="px-8 py-4 text-2xl rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-cyan-400 text-gray-900 hover:bg-white">${i18next.t('playAgain')}</button>
+		<h1 id="winner-message" class="text-5xl font-black text-center text-cyan-400 p-4 rounded-lg"></h1>
+		<button id="restart-button" class="px-8 py-4 text-2xl rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-cyan-400 text-gray-900 hover:bg-white">${i18next.t('playAgain')}</button>
         </div>
-	  </div>
-	</div>
+		</div>
+		<button id="returnButon" class="mt-8 px-8 py-4 text-lg rounded-lg shadow-md font-press-start transition duration-300 ease-in-out transform hover:scale-110 bg-gray-700 text-white hover:bg-gray-600">${i18next.t('return')}</button>
+		</div>
 	`;
 
   playTrack('/assets/Techno_Syndrome.mp3');
   document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+  document.getElementById('returnButon')?.addEventListener('click', () => navigate('/start'));
 
   const cells = container.querySelectorAll('.cell');
   const gameOverlay = container.querySelector('#game-overlay') as HTMLElement;

@@ -49,15 +49,15 @@ export function renderRegister(appElement: HTMLElement): void
 			<form id="registerForm" class="bg-gray-800 bg-opacity-50 shadow-md rounded-xl px-6 py-8 md:px-16 md:pt-12 md:pb-16 mb-8">
 				<div class="mb-6 md:mb-9">
 					<label class="block text-white text-lg md:text-2xl font-bold mb-2 md:mb-4" for="username">${i18next.t('username')}</label>
-					<input class="shadow appearance-none border rounded w-full py-3 px-4 md:py-4 md:px-6 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg md:text-2xl" id="username" type="text" placeholder="${i18next.t('username')}">
+					<input class="shadow appearance-none border rounded w-full py-3 px-4 md:py-4 md:px-6 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg md:text-2xl" id="username" type="text" placeholder="${i18next.t('username')}" maxlength='15' required>
 				</div>
 				<div class="mb-6 md:mb-9">
 					<label class="block text-white text-lg md:text-2xl font-bold mb-2 md:mb-4" for="mail">${i18next.t('email')}</label>
-					<input class="shadow appearance-none border rounded w-full py-3 px-4 md:py-4 md:px-6 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg md:text-2xl" id="mail" type="email" placeholder="${i18next.t('email')}">
+					<input class="shadow appearance-none border rounded w-full py-3 px-4 md:py-4 md:px-6 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-lg md:text-2xl" id="mail" type="email" placeholder="${i18next.t('email')}" required>
 				</div>
 				<div class="mb-8 md:mb-12">
 					<label class="block text-white text-lg md:text-2xl font-bold mb-2 md:mb-4" for="password">${i18next.t('password')}</label>
-					<input class="shadow appearance-none border rounded w-full py-3 px-4 md:py-4 md:px-6 text-gray-700 mb-4 md:mb-6 leading-tight focus:outline-none focus:shadow-outline text-lg md:text-2xl" id="password" type="password" placeholder="******************">
+					<input class="shadow appearance-none border rounded w-full py-3 px-4 md:py-4 md:px-6 text-gray-700 mb-4 md:mb-6 leading-tight focus:outline-none focus:shadow-outline text-lg md:text-2xl" id="password" type="password" placeholder="******************" required>
 				</div>
 				<div class="flex items-center justify-center">
                     <button type="submit" id="registerButton" class="relative w-[250px] h-[75px] md:w-[400px] md:h-[120px] cursor-pointer transform hover:scale-125 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">

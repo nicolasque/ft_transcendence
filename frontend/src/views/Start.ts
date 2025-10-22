@@ -13,7 +13,7 @@ export function renderStart(appElement: HTMLElement): void
         return;
 
 	appElement.innerHTML = `
-	<div class="h-screen flex flex-col items-center justify-start md:justify-center p-4 md:p-8 relative overflow-y-auto">
+	<div class="h-screen flex flex-col items-center justify-start md:justify-center p-4 md:p-8 relative overflow-hidden">
 		<div class="w-full flex justify-center mt-10 md:mt-20">
 			<button id="homeButton" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
 				<img src="/assets/logo.gif" alt="Game Logo" class="w-full max-w-sm md:max-w-5xl">
@@ -42,7 +42,7 @@ export function renderStart(appElement: HTMLElement): void
 		</div>
 
 		<div class="absolute top-4 right-4">
-            <button id="profileButton" class="relative w-[150px] h-[45px] md:w-[300px] md:h-[90px] cursor-pointer transform hover:scale-125 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+            <button id="profileButton" class="relative w-[150px] h-[45px] md:w-[300px] md:h-[90px] cursor-pointer transform hover:scale-125 transition-transform duration-200 overflow-auto focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
                 <img src="${i18next.t('img.profile')}" alt="${i18next.t('profile')}" class="absolute inset-0 w-full h-full object-contain drop-shadow-lg hover:drop-shadow-xl">
             </button>
 		</div>
