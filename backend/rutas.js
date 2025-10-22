@@ -176,11 +176,15 @@ const rutas = [
 	{
 		method: "POST",
 		url: "/tournaments",
-		// preHandler: authMiddleware,
+		preHandler: authMiddleware,
 		handler: TournamentController.createTournament
-	}
-
-	//TODO: Metodos y rutas para los torneos
+	},
+	{
+        method: "GET",
+        url: "/tournaments/:id",
+        preHandler: authMiddleware,
+        handler: TournamentController.getTournament
+    }
 ]
 
 export default rutas;

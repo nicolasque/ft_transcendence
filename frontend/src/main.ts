@@ -62,11 +62,12 @@ import { renderProfile } from './views/Profile.ts';
 import { renderFriendProfile } from './views/FriendProfile.ts';
 import { renderAbout } from './views/About.ts';
 import { initializePongGame } from './views/Pong.ts';
-import { renderPongTournament } from './views/PongTournament.ts';
 import { renderTicTacToe } from './views/TicTacToe.ts';
 import { renderFriends } from './views/Friends.ts';
 import { renderTournament } from './views/Tournament.ts';
 import { renderMatchmaking } from './views/Matchmaking.ts';
+import { renderTournamentPong } from './views/TournamentPong.ts';
+import { renderTournamentTTT } from './views/TournamentTTT.ts';
 
 const appElement = document.querySelector('#app') as HTMLDivElement;
 
@@ -82,11 +83,12 @@ const routes: { [key: string]: (element: HTMLElement) => void } =
     '/profile/:id': protectedRoute(renderFriendProfile),
 	'/about': protectedRoute(renderAbout),
 	'/pong': protectedRoute(initializePongGame),
-    '/pong-tournament': protectedRoute(renderPongTournament),
 	'/tictactoe': protectedRoute(renderTicTacToe),
 	'/friends': protectedRoute(renderFriends),
 	'/tournament': protectedRoute(renderTournament),
     '/matchmaking': protectedRoute(renderMatchmaking),
+	'/tournamentPong': protectedRoute(renderTournamentPong),
+	'/tournamentTTT': protectedRoute(renderTournamentTTT),
 };
 
 function router()

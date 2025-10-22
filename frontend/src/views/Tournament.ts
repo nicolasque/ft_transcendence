@@ -2,6 +2,7 @@ import { navigate } from '../main';
 import { playTrack } from '../utils/musicPlayer';
 import { authenticatedFetch } from '../utils/auth';
 import i18next from '../utils/i18n';
+
 let gameType: 'pong' | 'tictactoe' = 'pong';
 
 interface User 
@@ -20,7 +21,7 @@ let tournamentSize = 4;
 
 export function renderTournament(appElement: HTMLElement): void 
 {
-    if (!appElement) 
+    if (!appElement)
 		return;
 
     const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}'); // el usuario activo sera siempre el primer particpante
@@ -116,7 +117,8 @@ export function renderTournament(appElement: HTMLElement): void
 			tournamentSize: tournamentSize // Tamaño total del torneo (4, 8 o 16)
 		};
 	
-		try {
+		try 
+		{
 			const response = await authenticatedFetch('/api/tournaments', // Llamada autenticada al endpoint del backend
 			{
 				method: 'POST',
