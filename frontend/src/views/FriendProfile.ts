@@ -118,7 +118,7 @@ export async function renderFriendProfile(appElement: HTMLElement): Promise<void
                             </div>
                             <div>
                                 <p class="text-3xl md:text-4xl font-bold text-yellow-400">${stats.draws}</p>
-                                <p class="text-gray-400 text-sm">${i18next.t('drawsStat')}</p> 
+                                <p class="text-gray-400 text-sm">${i18next.t('drawsStat')}</p>
                             </div>
                             <div>
                                 <p class="text-3xl md:text-4xl font-bold text-blue-400">${(stats.played > 0 ? (stats.victories / (stats.played - stats.draws)) * 100 : 0).toFixed(1)}%</p>
