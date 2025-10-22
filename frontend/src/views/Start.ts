@@ -94,7 +94,7 @@ export function renderStart(appElement: HTMLElement): void
         tournamentButton.addEventListener('click', () =>
 		{
             localStorage.setItem('nextRoute', '/tournament');
-            navigate('/charQP');
+            navigate('/tournament');
             initializeAudio();
         });
     }

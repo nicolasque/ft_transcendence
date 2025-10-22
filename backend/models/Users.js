@@ -65,6 +65,10 @@ const UserModel = db.define('users', {
 		type: sequelize.STRING,
 		allowNull: false,
 		defaultValue: "placeholder.png"
+	}, is_guest: {
+		type: sequelize.BOOLEAN,
+		allowNull: false,
+		defaultValue: false
 	}
 
 }, {

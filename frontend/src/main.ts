@@ -65,6 +65,7 @@ import { renderAbout } from './views/About.ts';
 import { initializePongGame } from './views/Pong.ts';
 import { renderTicTacToe } from './views/TicTacToe.ts';
 import { renderFriends } from './views/Friends.ts';
+import { renderTournament } from './views/Tournament.ts';
 
 const appElement = document.querySelector('#app') as HTMLDivElement;
 
@@ -82,6 +83,7 @@ const routes: { [key: string]: (element: HTMLElement) => void } =
 	'/pong': protectedRoute(initializePongGame),
 	'/tictactoe': protectedRoute(renderTicTacToe),
 	'/friends': protectedRoute(renderFriends),
+	'/tournament': protectedRoute(renderTournament),
 };
 
 function router()

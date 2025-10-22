@@ -61,7 +61,7 @@ const rutas = [
 	{
 		method: "GET",
 		url: "/users",
-		preHandler: authMiddleware,
+		// preHandler: authMiddleware,
 		handler: UserControler.getAll,
 	},
 	{
