@@ -3,7 +3,8 @@ import { playTrack } from '../utils/musicPlayer';
 import { authenticatedFetch } from '../utils/auth';
 import i18next from '../utils/i18n';
 
-interface User {
+interface User 
+{
     id: number;
     username: string;
     email: string;
@@ -16,13 +17,14 @@ let participants: User[] = [];
 let allFriends: User[] = [];
 let tournamentSize = 4;
 
-export function renderTournament(appElement: HTMLElement): void {
-    if (!appElement) return;
+export function renderTournament(appElement: HTMLElement): void 
+{
+    if (!appElement) 
+		return;
 
-    const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
-    if (participants.length === 0 || participants[0].id !== currentUser.id) {
+    const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}'); // el usuario activo sera siempre el primer particpante
+    if (participants.length === 0 || participants[0].id !== currentUser.id) 
         participants = [{...currentUser, isAI: false}];
-    }
 
     appElement.innerHTML = `
     <div class="h-screen flex flex-col items-center p-4 md:p-8 overflow-y-auto font-press-start">
@@ -76,14 +78,16 @@ export function renderTournament(appElement: HTMLElement): void {
     `;
 
     playTrack('/assets/Techno_Syndrome.mp3');
-    document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+
+    document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start')); // logo
 
     const friendsContainer = document.getElementById('friends-container')!;
     const participantsContainer = document.getElementById('participants-container')!;
     const startTournamentButtonMobile = document.getElementById('start-tournament-button-mobile');
     const startTournamentButtonDesktop = document.getElementById('start-tournament-button-desktop');
 
-    function handleStartTournament() {
+    function handleStartTournament() // transmite los la lista de jugadores humanos y el numero de participantes totales a la siguiente vista
+	{
         localStorage.setItem('tournamentParticipants', JSON.stringify(participants));
         localStorage.setItem('tournamentSize', tournamentSize.toString());
         navigate('/matchmaking');
@@ -92,7 +96,8 @@ export function renderTournament(appElement: HTMLElement): void {
     startTournamentButtonMobile?.addEventListener('click', handleStartTournament);
     startTournamentButtonDesktop?.addEventListener('click', handleStartTournament);
     
-    function updateParticipantsList() {
+    function updateParticipantsList() 
+	{
         participantsContainer.innerHTML = participants.map((p, index) => `
             <div class="flex justify-between items-center text-white p-2">
                 <span class="font-bold text-xl">${p.username}</span>
@@ -102,8 +107,10 @@ export function renderTournament(appElement: HTMLElement): void {
         attachParticipantButtonListeners();
     }
     
-    function attachParticipantButtonListeners() {
-        participantsContainer.querySelectorAll('.remove-participant-btn').forEach(btn => btn.addEventListener('click', (e) => {
+    function attachParticipantButtonListeners() // captura los eventos de "remove participant" y actualiza la lista de participantes y la de amigos
+	{
+        participantsContainer.querySelectorAll('.remove-participant-btn').forEach(btn => btn.addEventListener('click', (e) => 
+		{
             const userId = parseInt((e.currentTarget as HTMLElement).dataset.userId!);
             participants = participants.filter(p => p.id !== userId);
             updateParticipantsList();
@@ -111,7 +118,8 @@ export function renderTournament(appElement: HTMLElement): void {
         }));
     }
 
-    function renderFriendsList() {
+    function renderFriendsList() 
+	{
         const availableFriends = allFriends.filter(friend => !participants.some(p => p.id === friend.id));
         friendsContainer.innerHTML = availableFriends.length > 0 ? availableFriends.map(friend => `
             <div class="flex justify-between items-center text-white p-2 hover:bg-gray-800 rounded-lg mb-2">
@@ -121,28 +129,35 @@ export function renderTournament(appElement: HTMLElement): void {
                     <button class="add-participant-btn" data-user-id="${friend.id}" data-username="${friend.username}" data-user-email="${friend.email}" data-user-elo="${friend.elo}" data-avatar-url="${friend.avatar_url || ''}"><img src="${i18next.t('img.add')}" class="h-8"></button>
                 </div>
             </div>`).join('') : `<div class="text-gray-400 text-center text-xl">${i18next.t('noFriends')}</div>`;
-        
         attachFriendButtonListeners();
     }
 
-    async function loadAllFriends() {
-        try {
+    async function loadAllFriends() 
+	{
+        try 
+		{
             allFriends = await authenticatedFetch('/api/friends').then(res => res.json());
             renderFriendsList();
-        } catch (error) {
+        } 
+		catch (error)
+		{
             friendsContainer.innerHTML = `<div class="text-red-500 p-2">${(error as Error).message}</div>`;
         }
     }
 
-    function attachFriendButtonListeners() {
-        friendsContainer.querySelectorAll('.profile-btn').forEach(btn => btn.addEventListener('click', (e) => {
+    function attachFriendButtonListeners() 
+	{
+        friendsContainer.querySelectorAll('.profile-btn').forEach(btn => btn.addEventListener('click', (e) => // vista profile, indicando que viene desde Tournamente
+		{
             const userId = (e.currentTarget as HTMLElement).dataset.userId;
             localStorage.setItem('fromTournament', 'true');
             navigate(`/profile/${userId}`);
         }));
 
-        friendsContainer.querySelectorAll('.add-participant-btn').forEach(btn => btn.addEventListener('click', (e) => {
-            if (participants.length >= tournamentSize) {
+        friendsContainer.querySelectorAll('.add-participant-btn').forEach(btn => btn.addEventListener('click', (e) => // muece users de friends a participants
+		{
+            if (participants.length >= tournamentSize) 
+			{
                 alert(i18next.t('maxParticipantsReached'));
                 return;
             }
@@ -153,7 +168,8 @@ export function renderTournament(appElement: HTMLElement): void {
             const elo = parseInt(target.dataset.userElo!);
             const avatar_url = target.dataset.avatarUrl;
 
-            if (!participants.find(p => p.id === userId)) {
+            if (!participants.find(p => p.id === userId)) // evita dupliccados
+			{
                 participants.push({ id: userId, username, email, elo, avatar_url, isAI: false });
                 updateParticipantsList();
                 renderFriendsList();
@@ -161,18 +177,21 @@ export function renderTournament(appElement: HTMLElement): void {
         }));
     }
 
-    document.querySelectorAll('.size-btn').forEach(button => {
-        button.addEventListener('click', () => {
+    document.querySelectorAll('.size-btn').forEach(button => // gestiona los botones de seleccion de tamaño
+	{
+        button.addEventListener('click', () => 
+		{
             tournamentSize = parseInt(button.getAttribute('data-size')!);
-            document.querySelectorAll('.size-btn').forEach(btn => {
+            document.querySelectorAll('.size-btn').forEach(btn =>
+			{
                 btn.classList.remove('opacity-100', 'border-b-4', 'border-cyan-400');
                 btn.classList.add('opacity-50');
             });
             button.classList.add('opacity-100', 'border-b-4', 'border-cyan-400');
             button.classList.remove('opacity-50');
 
-            // Limitar participantes si se reduce el tamaño del torneo
-            if (participants.length > tournamentSize) {
+            if (participants.length > tournamentSize) // Limita participantes si se reduce el tamaño del torneo
+			{
                 participants = participants.slice(0, tournamentSize);
                 updateParticipantsList();
                 renderFriendsList();
