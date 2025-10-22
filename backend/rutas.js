@@ -183,7 +183,7 @@ const rutas = [
         method: "GET",
         url: "/tournaments/:id",
         preHandler: authMiddleware,
-        handler: TournamentController.getTournament
+        handler: TournamentController.getTournamentInfo
     }
 ]
 

@@ -1,280 +1,251 @@
-import { navigate } from '../main';
-import { authenticatedFetch } from '../utils/auth';
-import i18next from '../utils/i18n';
+import { authenticatedFetch, navigate } from '../utils/auth';
+import { getLang } from '../utils/i18n';
 
-interface User 
-{
+// Tipos para la estructura de datos
+interface Participant {
     id: number;
     username: string;
+    avatar: string;
 }
 
-interface Match 
-{
-    id: number;
-    tournament_id: number;
-    player1_id: number;
-    player2_id: number;
-    winner_id: number | null;
-    match_status: 'waiting' | 'playing' | 'finish';
-    game: 'pong' | 'tictactoe';
-    player1: User; // Asumido que viene anidado en /api/match/getall
-    player2: User; // Asumido que viene anidado en /api/match/getall
-}
-
-interface MatchmakingProps 
-{
-    tournamentId: number;
-    initialSize: number;
+interface TournamentInfo {
     gameType: 'pong' | 'tictactoe';
+    participants: Participant[];
 }
 
-// Constantes globales asumidas (deberían venir de un archivo de constantes)
-const AI_USER_ID = -1; 
-const ROUTE_START = '/start';
-const ROUTE_PONG_TOURNAMENT = '/tournamentpong';
-const ROUTE_TTT_TOURNAMENT = '/tournamentttt';
-const navigateTo = (route: string, props: any = {}) => navigate(route, props);
+// Almacén temporal para los resultados de las partidas
+const matchResults: { [key: string]: number } = {};
 
-// --- Funciones de Utilidad ---
-
-/**
- * Obtiene las partidas de la ronda actual.
- */
-async function fetchMatches(tournamentId: number): Promise<Match[]> {
-    try {
-        const url = `/api/match/getall?tournament_id=${tournamentId}`;
-        const response = await authenticatedFetch(url);
-        const data = await response.json();
-        return data as Match[] || [];
-    } catch (error) {
-        console.error('Error al obtener los emparejamientos:', error);
-        return [];
-    }
+function getMatchId(p1Id: number, p2Id: number): string {
+    // Ordena los IDs para que la clave sea consistente sin importar el orden
+    return [p1Id, p2Id].sort((a, b) => a - b).join('_');
 }
 
-/**
- * Filtra las partidas para encontrar los IDs de los ganadores humanos para la siguiente ronda.
- */
-function getHumanWinners(matches: Match[], currentUserId: number): number[] {
-    const humanWinners: number[] = [];
-    for (const match of matches) {
-        if (match.match_status === 'finish') {
-            const winnerId = match.winner_id;
-            
-            // Si el ganador es un humano (no la IA) y es el usuario activo o un amigo
-            if (winnerId !== AI_USER_ID && winnerId !== null) {
-                 if (humanWinners.indexOf(winnerId) === -1) {
-                     humanWinners.push(winnerId);
-                 }
-            }
-        }
-    }
-    return humanWinners;
+function saveWinner(p1Id: number, p2Id: number, winnerId: number) {
+    const matchId = getMatchId(p1Id, p2Id);
+    matchResults[matchId] = winnerId;
+    localStorage.setItem(`tournament_match_${matchId}`, winnerId.toString());
 }
 
-// --- Render y Lógica Principal ---
-
-export async function renderMatchmaking(appElement: HTMLElement, props: MatchmakingProps): Promise<void> {
-    if (!appElement) 
-		return;
-
-    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-    const currentUserId = currentUser.id;
-    const { tournamentId, initialSize, gameType } = props;
-    
-    let matches: Match[] = [];
-    try {
-        matches = await fetchMatches(tournamentId);
-    } catch (e) {
-         appElement.innerHTML = `<div class="text-red-500 text-center p-8">${i18next.t('errorLoadingMatches')}</div>`;
-         return;
+function getWinner(p1Id: number, p2Id: number): number | null {
+    const matchId = getMatchId(p1Id, p2Id);
+    if (matchResults[matchId]) {
+        return matchResults[matchId];
     }
+    const storedWinner = localStorage.getItem(`tournament_match_${matchId}`);
+    if (storedWinner) {
+        const winnerId = parseInt(storedWinner, 10);
+        matchResults[matchId] = winnerId;
+        return winnerId;
+    }
+    return null;
+}
 
-    // --- Lógica de Final y Ganador Absoluto ---
-    // Si solo hay 1 partido y está terminado (y no es la ronda inicial)
-    if (matches.length === 1 && matches[0].match_status === 'finish' && initialSize === 2) {
-        const finalMatch = matches[0];
-        const winner = finalMatch.winner_id === finalMatch.player1_id ? finalMatch.player1.username : finalMatch.player2.username;
-        
-        appElement.innerHTML = `
-            <div id="matchmaking-view" class="h-screen flex flex-col items-center justify-center p-4 text-white font-press-start">
-                <button id="logo-link" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg mb-8">
-                    <img src="/assets/logo.gif" alt="Logo" class="w-32 h-32">
-                </button>
-                <h1 class="text-3xl font-bold text-yellow-400 mb-6">${i18next.t('congratulations')}</h1>
-                <p class="text-xl text-white mb-8">${i18next.t('winner_message').replace('{winner}', winner)}</p>
-                <button id="return-to-start-btn" class="relative w-64 h-[60px] cursor-pointer transform hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
-                    <img src="${i18next.t('img.return')}" alt="${i18next.t('return')}" class="absolute inset-0 w-full h-full object-contain">
-                </button>
-            </div>
-        `;
-        document.getElementById('return-to-start-btn')?.addEventListener('click', () => navigateTo(ROUTE_START));
-        document.getElementById('logo-link')?.addEventListener('click', () => navigateTo(ROUTE_START));
+
+export async function renderMatchmaking(appElement: HTMLElement) {
+    const tournamentId = localStorage.getItem('currentTournamentId');
+    const lang = getLang();
+
+    if (!tournamentId) {
+        console.error('No tournament ID found in localStorage.');
+        navigate('/start');
         return;
     }
-    // ----------------------------------------
-    
-    const allMatchesFinished = matches.every(match => match.match_status === 'finish');
 
-    const matchContainers = matches.map(match => {
-        const p1Name = match.player1.username;
-        const p2Name = match.player2.username;
-        const isHumanMatch = match.player1_id === currentUserId || match.player2_id === currentUserId;
-        const isWaiting = match.match_status === 'waiting';
-        const isFinished = match.match_status === 'finish';
-        
-        let actionContent = '';
+    try {
+        const data: TournamentInfo = await authenticatedFetch(`https://localhost:8000/api/tournaments/${tournamentId}`);
 
-        if (isFinished) {
-            const winnerName = match.winner_id === match.player1_id ? p1Name : p2Name;
-            actionContent = `<span class="text-yellow-400 font-bold text-lg">${winnerName} (${i18next.t('winner')})</span>`;
-        } else if (isWaiting && isHumanMatch) {
-            actionContent = `
-                <button class="play-match-btn focus:outline-none" 
-                        data-match-id="${match.id}" 
-                        data-game-type="${gameType}"
-                        data-p1-id="${match.player1_id}" 
-                        data-p2-id="${match.player2_id}"
-                        data-initial-size="${initialSize}">
-                    <img src="/assets/play.png" alt="Play" class="w-10 h-10 object-contain transform hover:scale-110 transition-transform duration-200">
-                </button>
-            `;
-        } else if (isWaiting) { // Partidas no humanas pendientes
-            actionContent = `<span class="text-gray-500">${i18next.t('waiting_for_humans')}</span>`;
+        const { gameType, participants } = data;
+        let humanMatchesCount = 0;
+        let humanMatchesCompleted = 0;
+
+        // Limpiar resultados de rondas anteriores si es un nuevo torneo
+        if (localStorage.getItem('lastRenderedTournamentId') !== tournamentId) {
+             Object.keys(localStorage).forEach(key => {
+                if (key.startsWith('tournament_match_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            localStorage.setItem('lastRenderedTournamentId', tournamentId);
         }
-        
-        return `
-            <div class="flex justify-between items-center p-4 bg-gray-800 rounded-lg border-2 border-cyan-400 mb-4 shadow-lg">
-                <span class="text-white w-1/3 text-right pr-4 text-xl truncate font-bold">${p1Name}</span>
-                <img src="/assets/vs.png" alt="VS" class="w-8 h-8 mx-2 object-contain">
-                <span class="text-white w-1/3 pl-4 text-xl truncate font-bold">${p2Name}</span>
-                <div class="w-1/3 flex justify-end pr-2">
-                    ${actionContent}
+
+
+        // Generar HTML para los emparejamientos
+        let matchesHtml = '';
+        for (let i = 0; i < participants.length; i += 2) {
+            const player1 = participants[i];
+            const player2 = participants[i + 1];
+
+            const isHumanMatch = player1.username !== 'ia' || player2.username !== 'ia';
+            if (isHumanMatch) {
+                humanMatchesCount++;
+            }
+
+            const winnerId = getWinner(player1.id, player2.id);
+            let matchActionHtml = '';
+
+            if (winnerId) {
+                 if (isHumanMatch) {
+                    humanMatchesCompleted++;
+                }
+                const winner = winnerId === player1.id ? player1 : player2;
+                matchActionHtml = `<div class="text-lg font-bold text-green-400">Winner: ${winner.username}</div>`;
+            } else if (isHumanMatch) {
+                matchActionHtml = `<button class="play-match-btn bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                                            data-game="${gameType}"
+                                            data-p1-id="${player1.id}" data-p1-name="${player1.username}"
+                                            data-p2-id="${player2.id}" data-p2-name="${player2.username}">
+                                        PLAY
+                                   </button>`;
+            } else {
+                 matchActionHtml = `<div class="text-lg font-bold text-gray-500">IA vs IA</div>`;
+            }
+
+            matchesHtml += `
+                <div class="flex items-center justify-between bg-gray-800 p-4 rounded-lg mb-4 border border-purple-500">
+                    <div class="flex items-center gap-4">
+                        <img src="/frontend/assets/${player1.avatar}" alt="${player1.username}" class="w-16 h-16 rounded-full border-2 border-blue-400">
+                        <span class="text-xl font-semibold text-white">${player1.username}</span>
+                    </div>
+                    <span class="text-2xl font-bold text-red-500 mx-4">VS</span>
+                    <div class="flex items-center gap-4">
+                        <span class="text-xl font-semibold text-white">${player2.username}</span>
+                        <img src="/frontend/assets/${player2.avatar}" alt="${player2.username}" class="w-16 h-16 rounded-full border-2 border-yellow-400">
+                    </div>
+                    <div class="w-48 text-center ml-8">
+                        ${matchActionHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Renderizado final
+        const isNextButtonDisabled = humanMatchesCompleted < humanMatchesCount;
+        appElement.innerHTML = `
+            <div class="flex justify-center items-center h-screen">
+                <div class="w-full max-w-4xl bg-black bg-opacity-80 rounded-3xl border-2 border-purple-500 shadow-lg p-8">
+                    <h1 class="text-4xl text-center text-white font-bold mb-8">TOURNAMENT BRACKET</h1>
+                    <div id="matches-container">${matchesHtml}</div>
+                    <div class="text-center mt-8">
+                        <button id="next-round-btn" class="py-3 px-8 text-white font-bold rounded-lg text-2xl
+                            ${isNextButtonDisabled ? 'bg-gray-500 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-800'}">
+                            NEXT
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
-    }).join('');
 
-    // --- Botón NEXT/Error ---
-    const nextButtonContent = allMatchesFinished
-        ? `<img src="${i18next.t('img.accept')}" alt="NEXT" class="absolute inset-0 w-full h-full object-contain">`
-        : `<img src="/assets/next_disabled.png" alt="NEXT Disabled" class="absolute inset-0 w-full h-full object-contain opacity-50">`;
+        // Lógica de los botones después de renderizar
+        attachEventListeners(appElement, participants);
 
-    const nextButtonClasses = allMatchesFinished 
-        ? 'cursor-pointer transform hover:scale-105 transition-transform duration-200' 
-        : 'cursor-not-allowed';
-    
-    const nextButtonId = allMatchesFinished ? 'next-round-btn' : 'next-round-btn-disabled';
+    } catch (error) {
+        console.error('Failed to fetch tournament info:', error);
+        appElement.innerHTML = `<div class="text-red-500 text-center mt-10">Error loading tournament. Redirecting...</div>`;
+        setTimeout(() => navigate('/start'), 3000);
+    }
+}
 
-    const nextButtonHtml = `
-        <button id="${nextButtonId}" class="relative w-64 h-[60px] focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg ${nextButtonClasses}"
-                ${!allMatchesFinished ? `title="${i18next.t('pending_matches_error')}"` : ''}>
-            ${nextButtonContent}
-        </button>
-    `;
-    // ----------------------------
-    
-    appElement.innerHTML = `
-        <div id="matchmaking-view" class="h-screen flex flex-col items-center p-4 md:p-8 overflow-y-auto font-press-start text-white">
-            <button id="logo-link" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg mb-8 flex-shrink-0">
-                <img src="/assets/logo.gif" alt="Logo" class="w-24 h-24 md:w-32 md:h-32">
-            </button>
-            <h1 class="text-2xl font-bold text-cyan-400 mb-6 flex-shrink-0">${i18next.t('matchmaking.title')} (ID: ${tournamentId}, Size: ${initialSize})</h1>
+function attachEventListeners(appElement: HTMLElement, participants: Participant[]) {
+    // Event listeners para los botones PLAY
+    appElement.querySelectorAll('.play-match-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const btn = button as HTMLButtonElement;
+            const gameType = btn.dataset.game;
             
-            <div class="w-full max-w-3xl flex-grow overflow-y-auto min-h-0 p-2">
-                <div id="match-list" class="mb-6">
-                    ${matchContainers}
-                </div>
-            </div>
-            
-            <div class="mt-4 flex justify-end w-full max-w-3xl flex-shrink-0">
-                ${nextButtonHtml}
-            </div>
-        </div>
-    `;
+            // Guardar info para la vista del juego
+            localStorage.setItem('tournament_player1_id', btn.dataset.p1Id!);
+            localStorage.setItem('tournament_player1_name', btn.dataset.p1Name!);
+            localStorage.setItem('tournament_player2_id', btn.dataset.p2Id!);
+            localStorage.setItem('tournament_player2_name', btn.dataset.p2Name!);
 
-    // --- Event Listeners ---
-
-    document.getElementById('logo-link')?.addEventListener('click', () => navigateTo(ROUTE_START));
-    
-    // Botones Play
-    document.querySelectorAll('.play-match-btn').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const btn = e.currentTarget as HTMLElement;
-            const matchId = parseInt(btn.dataset.matchId!, 10);
-            const p1Id = parseInt(btn.dataset.p1Id!, 10);
-            const p2Id = parseInt(btn.dataset.p2Id!, 10);
-            const initialSize = parseInt(btn.dataset.initialSize!, 10);
-            
-            const opponentId = p1Id === currentUserId ? p2Id : p1Id;
-            const opponentIsAI = opponentId === AI_USER_ID;
-            
-            let route: string;
-            let routeProps: any = {
-                tournamentId,
-                matchId,
-                initialSize,
-                player1Id: p1Id,
-                player2Id: p2Id,
-                gameType: gameType
-            };
-            
             if (gameType === 'pong') {
-                route = ROUTE_PONG_TOURNAMENT;
-                // La IA es HARD
-                routeProps.opponentType = opponentIsAI ? 'AI' : 'HUMAN';
-            } else { // tictactoe
-                route = ROUTE_TTT_TOURNAMENT;
+                navigate('/tournamentPong');
+            } else if (gameType === 'tictactoe') {
+                navigate('/tournamentTTT');
             }
-
-            navigateTo(route, routeProps);
         });
     });
 
-    // Botón NEXT
-    const nextBtn = document.getElementById('next-round-btn');
-    if (nextBtn) {
-        nextBtn.addEventListener('click', async () => {
-            const currentMatches = await fetchMatches(tournamentId); // Refetch por seguridad
-            const humanWinners = getHumanWinners(currentMatches, currentUserId);
-            
-            const newSize = initialSize / 2;
-            const nextRoundSize = Math.max(2, newSize); // Mínimo 2 participantes (la final)
+    // Event listener para el botón NEXT
+    const nextButton = appElement.querySelector('#next-round-btn') as HTMLButtonElement;
+    if (nextButton) {
+        nextButton.addEventListener('click', async () => {
+            if (nextButton.classList.contains('cursor-not-allowed')) {
+                alert('Please complete all your matches before proceeding to the next round.');
+                return;
+            }
 
-            // Crear nueva ronda del torneo
+            // Lógica para la final del torneo
+            if (participants.length === 2) {
+                const winnerId = getWinner(participants[0].id, participants[1].id);
+                const winner = participants.find(p => p.id === winnerId);
+                const tournamentContainer = appElement.querySelector('.max-w-4xl') as HTMLElement;
+                tournamentContainer.innerHTML = `
+                     <h1 class="text-5xl text-center text-yellow-400 font-bold mb-8 animate-pulse">WINNER</h1>
+                     <div class="text-center">
+                         <img src="/frontend/assets/${winner?.avatar}" alt="${winner?.username}" class="w-32 h-32 rounded-full border-4 border-yellow-400 mx-auto mb-4">
+                         <h2 class="text-3xl text-white font-bold">${winner?.username}</h2>
+                         <p class="text-xl text-gray-300 mt-2">Congratulations!</p>
+                         <button id="finish-btn" class="mt-8 bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-xl">
+                             FINISH
+                         </button>
+                     </div>
+                `;
+                tournamentContainer.querySelector('#finish-btn')?.addEventListener('click', () => {
+                    localStorage.removeItem('currentTournamentId');
+                    localStorage.removeItem('lastRenderedTournamentId');
+                    Object.keys(localStorage).forEach(key => {
+                        if (key.startsWith('tournament_match_')) {
+                            localStorage.removeItem(key);
+                        }
+                    });
+                    navigate('/start');
+                });
+                return;
+            }
+
+            // Lógica para crear la siguiente ronda
+            const winners: number[] = [];
+            for (let i = 0; i < participants.length; i += 2) {
+                const p1 = participants[i];
+                const p2 = participants[i + 1];
+                let winnerId = getWinner(p1.id, p2.id);
+
+                // Si es una partida IA vs IA, se elige un ganador al azar
+                if (!winnerId && p1.username === 'ia' && p2.username === 'ia') {
+                   winnerId = Math.random() < 0.5 ? p1.id : p2.id;
+                }
+                
+                if (winnerId) {
+                    const winnerIsHuman = participants.find(p => p.id === winnerId)?.username !== 'ia';
+                    if(winnerIsHuman) {
+                        winners.push(winnerId);
+                    }
+                }
+            }
+            
             try {
-                const response = await authenticatedFetch('/api/tournaments', {
+                const currentTournament: TournamentInfo = await authenticatedFetch(`https://localhost:8000/api/tournaments/${localStorage.getItem('currentTournamentId')}`);
+                const response = await authenticatedFetch('https://localhost:8000/api/tournaments/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        participants: humanWinners, // Solo IDs de ganadores humanos
-                        tournamentSize: nextRoundSize,
-                        game: gameType 
-                    })
+                        name: `Round of ${participants.length / 2}`,
+                        game: currentTournament.gameType,
+                        size: participants.length / 2,
+                        participants: winners // Solo enviamos los IDs de los ganadores humanos
+                    }),
                 });
-                
-                const result = await response.json();
-                if (!response.ok) 
-                    throw new Error(result.message || i18next.t('errorAdvancingRound'));
-                
-                // Cargar la nueva vista Matchmaking
-                navigateTo(ROUTE_MATCHMAKING, {
-                    tournamentId: result.tournament.id,
-                    initialSize: nextRoundSize,
-                    gameType: gameType
-                });
-                
+
+                // Guardar el nuevo ID y recargar la vista
+                localStorage.setItem('currentTournamentId', response.tournamentId);
+                renderMatchmaking(appElement);
+
             } catch (error) {
-                alert(`${i18next.t('errorAdvancingRound')}: ${(error as Error).message}`);
+                console.error('Failed to create next round:', error);
+                alert('An error occurred while creating the next round.');
             }
         });
     }
 }
-
-// Para usar con el router, debe ser la función principal
-export function renderMatchmakingView(appElement: HTMLElement, props: MatchmakingProps): void {
-    renderMatchmaking(appElement, props);
-}
-
-// Se debe definir el ROUTE_MATCHMAKING en constantes o en el router.
-const ROUTE_MATCHMAKING = '/matchmaking';
