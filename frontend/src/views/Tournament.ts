@@ -86,12 +86,48 @@ export function renderTournament(appElement: HTMLElement): void
     const startTournamentButtonMobile = document.getElementById('start-tournament-button-mobile');
     const startTournamentButtonDesktop = document.getElementById('start-tournament-button-desktop');
 
-    function handleStartTournament() // transmite los la lista de jugadores humanos y el numero de participantes totales a la siguiente vista
+	async function handleStartTournament() 
 	{
-        localStorage.setItem('tournamentParticipants', JSON.stringify(participants));
-        localStorage.setItem('tournamentSize', tournamentSize.toString());
-        navigate('/matchmaking');
-    }
+		const gameType = 'pong'; 
+		
+		if (participants.length < 1) {
+			alert(i18next.t('selectParticipants'));
+			return;
+		}
+		if (participants.length > tournamentSize) {
+			alert(i18next.t('maxParticipantsReached')); 
+			return;
+		}
+	
+		const participantIds = participants.map(p => p.id); // Preparar el array de IDs de participantes humanos
+		const payload = // preparamos el payload que enviaremos al backend
+		{
+			game: gameType, 
+			participants: participantIds,
+			tournamentSize: tournamentSize // Tamaño total del torneo (4, 8 o 16)
+		};
+	
+		try {
+			const response = await authenticatedFetch('/api/tournaments', // Llamada autenticada al endpoint del backend
+			{
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(payload)
+			});
+	
+			const result = await response.json();
+			if (!response.ok) // Manejar errores de validación del backend (ej: el tamaño del torneo no es válido, etc...)
+				throw new Error(result.message || 'Error desconocido al crear el torneo.');
+	
+			const tournamentId = result.tournament.id.toString(); // Almacenar el ID del torneo
+			localStorage.setItem('currentTournamentId', tournamentId);
+			navigate('/matchmaking');
+	
+		} 
+		catch (error) {
+			alert(`Error al iniciar el torneo: ${(error as Error).message}`);
+		}
+	}
 
     startTournamentButtonMobile?.addEventListener('click', handleStartTournament);
     startTournamentButtonDesktop?.addEventListener('click', handleStartTournament);
