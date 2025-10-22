@@ -2,6 +2,7 @@ import { navigate } from '../main';
 import { playTrack } from '../utils/musicPlayer';
 import { authenticatedFetch } from '../utils/auth';
 import i18next from '../utils/i18n';
+let gameType: 'pong' | 'tictactoe' = 'pong';
 
 interface User 
 {
@@ -26,7 +27,7 @@ export function renderTournament(appElement: HTMLElement): void
     if (participants.length === 0 || participants[0].id !== currentUser.id) 
         participants = [{...currentUser, isAI: false}];
 
-    appElement.innerHTML = `
+	appElement.innerHTML = `
     <div class="h-screen flex flex-col items-center p-4 md:p-8 overflow-y-auto font-press-start">
         <div class="w-full flex justify-center mb-8 flex-shrink-0">
             <button id="homeButton" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
@@ -36,6 +37,16 @@ export function renderTournament(appElement: HTMLElement): void
 
         <div class="flex-grow grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-7xl mx-auto min-h-0">
             <div class="col-span-1 flex flex-col items-center h-full">
+                <div class="bg-gray-800 bg-opacity-75 shadow-lg rounded-xl p-4 md:p-6 flex flex-col items-center space-y-4 mb-4 flex-shrink-0 w-full">
+                    <div id="game-selection" class="flex flex-wrap justify-center items-center gap-4 md:gap-6">
+                        <button data-game="pong" class="game-btn relative h-12 w-28 md:h-16 md:w-36 cursor-pointer transition-transform transform hover:scale-110 ${gameType === 'pong' ? 'opacity-100 border-b-4 border-cyan-400' : 'opacity-50'} focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+                            <img src="/assets/pong.png" class="w-full h-full object-contain p-2">
+                        </button>
+                        <button data-game="tictactoe" class="game-btn relative h-12 w-28 md:h-16 md:w-36 cursor-pointer transition-transform transform hover:scale-110 ${gameType === 'tictactoe' ? 'opacity-100 border-b-4 border-cyan-400' : 'opacity-50'} focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+                            <img src="${i18next.t('img.ticTacToe')}" class="w-full h-full object-contain p-2">
+                        </button>
+                    </div>
+                </div>
                 <button class="relative w-full h-[60px] mb-4 flex-shrink-0">
                     <img src="${i18next.t('img.friends')}" class="w-full h-full object-contain">
                 </button>
@@ -88,8 +99,6 @@ export function renderTournament(appElement: HTMLElement): void
 
 	async function handleStartTournament() 
 	{
-		const gameType = 'pong'; 
-		
 		if (participants.length < 1) {
 			alert(i18next.t('selectParticipants'));
 			return;
@@ -234,6 +243,21 @@ export function renderTournament(appElement: HTMLElement): void
             }
         });
     });
+
+	document.querySelectorAll('.game-btn').forEach(button => 
+	{
+		button.addEventListener('click', () => 
+		{
+			gameType = button.getAttribute('data-game') as 'pong' | 'tictactoe';
+			document.querySelectorAll('.game-btn').forEach(btn =>
+			{
+				btn.classList.remove('opacity-100', 'border-b-4', 'border-cyan-400');
+				btn.classList.add('opacity-50');
+			});
+			button.classList.add('opacity-100', 'border-b-4', 'border-cyan-400');
+			button.classList.remove('opacity-50');
+		});
+	});
 
     loadAllFriends();
     updateParticipantsList();
