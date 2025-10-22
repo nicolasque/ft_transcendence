@@ -59,7 +59,7 @@ export function renderFriends(appElement: HTMLElement): void {
             </div>
             
             <div id="chat-column" class="col-span-1 w-full bg-black border-4 border-cyan-400 rounded-lg p-4 flex flex-col shadow-lg hidden h-full overflow-hidden">
-                <h2 id="chat-with-username" class="text-2xl text-center text-white font-bold mb-4 truncate"></h2>
+                <h2 id="chat-with-username" class="text-2xl text-center text-white font-bold mb-4"></h2>
                 <div id="chat-history" class="flex-grow overflow-y-auto mb-4 p-2 bg-gray-900 rounded"></div>
                 <div class="flex flex-shrink-0">
                     <input id="chat-input" type="text" class="flex-grow bg-gray-700 p-2 rounded text-white">
@@ -97,30 +97,26 @@ export function renderFriends(appElement: HTMLElement): void {
     }
 
 	async function loadChatHistory(withUserId: number) {
-		try {
-			const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
-			const messages: Message[] = await response.json();
-			
-			// Filtro para mostrar solo mensajes con ID impar
-			const oddIdMessages = messages.filter(msg => msg.id % 2 !== 0);
-	
-			chatHistory.innerHTML = '';
-			
-			oddIdMessages.filter(msg => !blockedUserIds.has(msg.sender_id)).forEach(msg => {
-				const isCurrentUser = msg.sender_id === currentUser.id;
-				const messageDiv = document.createElement('div');
-				messageDiv.className = `p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}`;
-				messageDiv.innerHTML = `<p class="text-sm text-white">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
-				chatHistory.appendChild(messageDiv);
-			});
-	
-			chatHistory.scrollTop = chatHistory.scrollHeight;
-		} 
-		catch (error) 
-		{
-			chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
-		}
-	}
+        try {
+            const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
+            const messages: Message[] = await response.json();
+            
+            const oddIdMessages = messages.filter(msg => msg.id % 2 !== 0);
+    
+            chatHistory.innerHTML = '';
+            
+            oddIdMessages.filter(msg => !blockedUserIds.has(msg.sender_id)).forEach(msg => {
+                const isCurrentUser = msg.sender_id === currentUser.id;
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}`;
+                messageDiv.innerHTML = `<p class="text-sm text-white">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
+                chatHistory.appendChild(messageDiv);
+            });
+    
+        } catch (error) {
+            chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
+        }
+    }
 
     const intervalId = setInterval(() => {
         if (currentChatUserId) {
