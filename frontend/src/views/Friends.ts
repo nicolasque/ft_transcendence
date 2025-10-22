@@ -22,7 +22,6 @@ interface Message {
     timestamp: string;
 }
 
-// Estado local para gestionar usuarios bloqueados (solo frontend)
 const blockedUserIds = new Set<number>();
 
 export function renderFriends(appElement: HTMLElement): void {
@@ -40,29 +39,32 @@ export function renderFriends(appElement: HTMLElement): void {
         </div>
 
         <div class="flex-grow grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-7xl mx-auto min-h-0">
-            
+
             <div class="col-span-1 flex flex-col space-y-4">
                 <div class="w-full flex flex-col items-center">
-                    <button data-collapsible="requests-container" class="collapsible-trigger relative w-full h-[75px] mb-2"><img src="${i18next.t('img.requests')}" class="w-full h-full object-contain"></button>
+                    <button data-collapsible="requests-container" class="collapsible-trigger relative w-full h-[75px] mb-2"><img src="${i18next.t('img.requests')}" alt="${i18next.t('requests')}" class="w-full h-full object-contain"></button>
                     <div id="requests-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg"></div>
                 </div>
 
                 <div class="w-full flex flex-col items-center">
-                    <button data-collapsible="users-container" class="collapsible-trigger relative w-full h-[50px] mb-2"><img src="${i18next.t('img.users')}" class="w-full h-full object-contain"></button>
+                    <button data-collapsible="users-container" class="collapsible-trigger relative w-full h-[50px] mb-2"><img src="${i18next.t('img.users')}" alt="${i18next.t('users')}" class="w-full h-full object-contain"></button>
                     <div id="users-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg hidden"></div>
                 </div>
             </div>
 
             <div class="col-span-1 flex flex-col items-center">
-                <button class="relative w-full h-[60px] mb-4"><img src="${i18next.t('img.friends')}" class="w-full h-full object-contain"></button>
+                <button class="relative w-full h-[60px] mb-4"><img src="${i18next.t('img.friends')}" alt="${i18next.t('friends')}" class="w-full h-full object-contain"></button>
                 <div id="friends-container" class="w-full bg-black border-4 border-cyan-400 rounded-lg p-4 overflow-y-auto shadow-lg h-full"></div>
             </div>
-            
+
             <div id="chat-column" class="col-span-1 w-full bg-black border-4 border-cyan-400 rounded-lg p-4 flex flex-col shadow-lg hidden h-full overflow-hidden">
                 <h2 id="chat-with-username" class="text-2xl text-center text-white font-bold mb-4"></h2>
                 <div id="chat-history" class="flex-grow overflow-y-auto mb-4 p-2 bg-gray-900 rounded"></div>
                 <div class="flex flex-shrink-0">
-                    <input id="chat-input" type="text" class="flex-grow bg-gray-700 p-2 rounded text-white">
+                    <input id="chat-input" type="text" class="flex-grow bg-gray-700 p-2 rounded text-white mr-2">
+                     <button id="send-chat-btn" class="relative w-20 h-10">
+                        <img src="${i18next.t('img.send')}" alt="${i18next.t('send')}" class="absolute inset-0 w-full h-full object-contain">
+                    </button>
                 </div>
             </div>
         </div>
@@ -79,12 +81,13 @@ export function renderFriends(appElement: HTMLElement): void {
     const chatWithUsername = document.getElementById('chat-with-username')!;
     const chatHistory = document.getElementById('chat-history')!;
     const chatInput = document.getElementById('chat-input') as HTMLInputElement;
-    
+    const sendChatButton = document.getElementById('send-chat-btn');
+
     let currentChatUserId: number | null = null;
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
-    document.querySelectorAll('.collapsible-trigger').forEach(trigger => 
-        trigger.addEventListener('click', () => 
+    document.querySelectorAll('.collapsible-trigger').forEach(trigger =>
+        trigger.addEventListener('click', () =>
             document.getElementById(trigger.getAttribute('data-collapsible')!)?.classList.toggle('hidden')
         )
     );
@@ -100,11 +103,11 @@ export function renderFriends(appElement: HTMLElement): void {
         try {
             const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
             const messages: Message[] = await response.json();
-            
+
             const oddIdMessages = messages.filter(msg => msg.id % 2 !== 0);
-    
+
             chatHistory.innerHTML = '';
-            
+
             oddIdMessages.filter(msg => !blockedUserIds.has(msg.sender_id)).forEach(msg => {
                 const isCurrentUser = msg.sender_id === currentUser.id;
                 const messageDiv = document.createElement('div');
@@ -112,7 +115,7 @@ export function renderFriends(appElement: HTMLElement): void {
                 messageDiv.innerHTML = `<p class="text-sm text-white">${msg.message}</p><span class="text-xs text-gray-400">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
                 chatHistory.appendChild(messageDiv);
             });
-    
+
         } catch (error) {
             chatHistory.innerHTML = `<div class="text-red-500 p-2">Error al cargar historial.</div>`;
         }
@@ -137,6 +140,9 @@ export function renderFriends(appElement: HTMLElement): void {
         } catch (error) { alert('Error al enviar mensaje.'); }
     }
 
+    if (sendChatButton) {
+        sendChatButton.addEventListener('click', sendMessage);
+    }
     chatInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             sendMessage();
@@ -169,11 +175,11 @@ export function renderFriends(appElement: HTMLElement): void {
                 <div class="flex flex-col items-center text-white p-2 hover:bg-gray-800 rounded-lg mb-2">
                     <span class="font-bold text-2xl truncate" style="max-width: 200px;">${friend.username}</span>
                     <div class="flex gap-2 mt-2">
-                        <button class="chat-btn" data-user-id="${friend.id}" data-username="${friend.username}"><img src="${i18next.t('img.chat')}" class="h-8"></button>
+                        <button class="chat-btn" data-user-id="${friend.id}" data-username="${friend.username}"><img src="${i18next.t('img.chat')}" alt="${i18next.t('chat')}" class="h-8"></button>
                         <button class="play-btn" data-user-id="${friend.id}" data-username="${friend.username}"><img src="/assets/PvP.png" class="h-8"></button>
-                        <button class="profile-btn" data-user-id="${friend.id}"><img src="${i18next.t('img.profile')}" class="h-8"></button>
+                        <button class="profile-btn" data-user-id="${friend.id}"><img src="${i18next.t('img.profile')}" alt="${i18next.t('profile')}" class="h-8"></button>
                         <button class="block-toggle-btn p-1 rounded ${blockedUserIds.has(friend.id) ? 'bg-blue-600' : 'bg-transparent'}" data-user-id="${friend.id}">
-                            <img src="${i18next.t('img.block')}" class="h-8">
+                            <img src="${i18next.t('img.block')}" alt="${i18next.t('block')}" class="h-8">
                         </button>
                     </div>
                 </div>`).join('') : `<div class="text-gray-400 text-center text-xl">${i18next.t('noFriends')}</div>`;
@@ -208,8 +214,8 @@ export function renderFriends(appElement: HTMLElement): void {
                 <div class="flex justify-between items-center text-white p-2 border-b border-gray-700">
                     <span class="truncate" style="max-width: 120px;">${req.username}</span>
                     <div class="flex gap-1">
-                        <button class="request-action-btn" data-action="accept" data-id="${req.friendshipId}"><img src="${i18next.t('img.accept')}" class="h-6"></button>
-                        <button class="request-action-btn" data-action="reject" data-id="${req.friendshipId}"><img src="${i18next.t('img.cancel')}" class="h-6"></button>
+                        <button class="request-action-btn" data-action="accept" data-id="${req.friendshipId}"><img src="${i18next.t('img.accept')}" alt="${i18next.t('accept')}" class="h-6"></button>
+                        <button class="request-action-btn" data-action="reject" data-id="${req.friendshipId}"><img src="${i18next.t('img.cancel')}" alt="${i18next.t('cancel')}" class="h-6"></button>
                     </div>
                 </div>`).join('') : `<div class="text-gray-400 text-center">${i18next.t('noPendingRequests')}</div>`;
             requestsContainer.querySelectorAll('.request-action-btn').forEach(btn => btn.addEventListener('click', (e) => {
@@ -237,10 +243,10 @@ export function renderFriends(appElement: HTMLElement): void {
             ]);
             const friendIds = new Set(friends.map((f: User) => f.id));
             const requestIds = new Set(requests.map((r: FriendRequest) => r.id));
-            
-            const otherUsers = users.filter((user: User) => 
-                user.id !== currentUser.id && 
-                !friendIds.has(user.id) && 
+
+            const otherUsers = users.filter((user: User) =>
+                user.id !== currentUser.id &&
+                !friendIds.has(user.id) &&
                 !requestIds.has(user.id) &&
                 !sentRequestIds.has(user.id)
             );
@@ -248,7 +254,7 @@ export function renderFriends(appElement: HTMLElement): void {
             usersContainer.innerHTML = otherUsers.map((user: User) => `
 				<div class="flex justify-between items-center text-white p-2">
 					<span class="text-xl truncate" style="max-width: 150px;">${user.username}</span>
-                    <button class="add-friend-btn" data-user-id="${user.id}"><img src="${i18next.t('img.add')}" class="h-8"></button>
+                    <button class="add-friend-btn" data-user-id="${user.id}"><img src="${i18next.t('img.add')}" alt="${i18next.t('add')}" class="h-8"></button>
 				</div>`).join('');
             usersContainer.querySelectorAll('.add-friend-btn').forEach(btn => btn.addEventListener('click', (e) => {
                 sendFriendRequest(currentUser.id, parseInt((e.currentTarget as HTMLElement).dataset.userId!));
