@@ -434,7 +434,6 @@ async function handleStartTournament() {
 		// Guardar la información necesaria para la siguiente pantalla
 		// Es crucial que el backend devuelva la lista final de participantes
 		// con sus IDs reales (incluyendo los guests asignados) y sus usernames originales.
-		// --- INICIO: Cambios Robustos para nueva página ---
 		const tournamentId = result.tournament?.id; // Aún necesitamos el ID del torneo creado
 
 		if (!tournamentId) {
@@ -495,7 +494,6 @@ async function handleStartTournament() {
 
 		// Navegar a la nueva página del torneo
 		navigate(`/tournament-match/${tournamentId}`);
-		// --- FIN: Cambios Robustos para nueva página ---
 	} catch (error) {
 		console.error("Error al iniciar el torneo:", error);
 		alert(`${i18next.t('Error al crear torneo')}: ${(error as Error).message}`);

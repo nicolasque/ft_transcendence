@@ -36,3 +36,10 @@ export interface GameObjects {
   player3: PaddleObject;
   player4: PaddleObject;
 }
+
+export interface ParticipantInfo {
+    id: number;
+    username: string;
+    displayName: string;
+    is_guest?: boolean;
+}

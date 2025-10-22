@@ -1,7 +1,11 @@
 import { navigate } from '../main';
 import { playTrack } from '../utils/musicPlayer';
-import { authenticatedFetch } from '../utils/auth';
+import { protectedRoute } from '../utils/auth.ts';
+
+import { GameObjects, Score, GameMode, DifficultyLevel, PaddleObject, BallObject } from '../utils/types';
+import { PADDLE_THICKNESS, BALL_RADIUS, WINNING_SCORE, INITIAL_BALL_SPEED, ACCELERATION_FACTOR, DIFFICULTY_LEVELS, MAX_BOUNCE_ANGLE, PADDLE_INFLUENCE_FACTOR, MAX_BALL_SPEED, PADDLE_LENGTH_CLASSIC, PADDLE_SPEED_CLASSIC, PADDLE_LENGTH_4P, PADDLE_SPEED_4P, shuffleArray } from '../utils/constants';
 import i18next from '../utils/i18n';
+import {initializePongGame} from './Pong.ts';
 
 // Interfaz ajustada a lo que guardamos
 interface ParticipantInfo {
@@ -11,6 +15,8 @@ interface ParticipantInfo {
     is_guest?: boolean;
     // Añade más campos si los guardaste
 }
+
+let pongElement;
 
 export async function renderTournamentMatch(appElement: HTMLElement): Promise<void> {
     if (!appElement) return;
@@ -67,6 +73,12 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
             <button id="back-to-start" class="mt-8 px-6 py-3 bg-gray-600 rounded hover:bg-gray-500">
                 ${i18next.t('return')} al Menú Principal
             </button>
+			<div id="pong">
+			</div>
+		</main>
+		<button id="homeButton" class="mt-8 px-8 py-4 text-lg rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-gray-700 text-white hover:bg-gray-600">${i18next.t('return')}</button>
+	  </div>
+			</div>
         </div>
     `;
 
@@ -88,5 +100,6 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
     // 4. Implementar la lógica de juego real (posiblemente en otra vista o componente).
     // 5. Actualizar el estado del torneo y las partidas (polling o WebSockets).
 
-
+	pongElement = document.getElementById('pong');
+	initializePongGame(pongElement);
 }

@@ -4,6 +4,7 @@ import { GameObjects, Score, GameMode, DifficultyLevel, PaddleObject, BallObject
 import { PADDLE_THICKNESS, BALL_RADIUS, WINNING_SCORE, INITIAL_BALL_SPEED, ACCELERATION_FACTOR, DIFFICULTY_LEVELS, MAX_BOUNCE_ANGLE, PADDLE_INFLUENCE_FACTOR, MAX_BALL_SPEED, PADDLE_LENGTH_CLASSIC, PADDLE_SPEED_CLASSIC, PADDLE_LENGTH_4P, PADDLE_SPEED_4P, shuffleArray } from '../utils/constants';
 import i18next from '../utils/i18n';
 import { authenticatedFetch } from '../utils/auth';
+import { ParticipantInfo } from '../utils/types';
 
 let aiLastUpdateTime = 0;
 let aiTargetY: number | null = null;
@@ -31,7 +32,7 @@ function predictBallTrajectory(ball: BallObject, targetX: number, canvasHeight: 
     return ball.y;
 }
 
-export function initializePongGame(container: HTMLElement) {
+export function initializePongGame(container: HTMLElement, player1?: ParticipantInfo, player2?: ParticipantInfo) {
 	container.innerHTML = `
 	  <div class="h-screen w-full flex flex-col items-center justify-center p-4 text-white font-press-start">
 		<main class="relative w-full max-w-6xl">
