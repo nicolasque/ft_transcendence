@@ -85,8 +85,8 @@ MatchModel.afterUpdate(async (match, options) => {
     if (match.changed('match_status') && match.match_status === 'finish' && match.tournament_id) {
         
         //Definir al ganador aquí para que esté disponible en ambos casos.
-        const winnerId = match.player_one_points > match.player_two_points 
-            ? match.player_one_id 
+        const winnerId = match.player_one_points > match.player_two_points
+            ? match.player_one_id
             : match.player_two_id;
 
         //Si ay una siguiente partida, avanza al ganador.
@@ -100,11 +100,11 @@ MatchModel.afterUpdate(async (match, options) => {
                     await nextMatch.update({ player_two_id: winnerId });
                 }
             }
-        } 
+        }
         //Si NO ay siguiente partida, Fianliza el torneo.
-        else { 
+        else {
             const tournament = await TournamentModel.findByPk(match.tournament_id);
-            
+
             if (tournament) {
                 await tournament.update({
                     status: 'finished',

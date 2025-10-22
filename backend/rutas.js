@@ -174,7 +174,7 @@ const rutas = [
 	{
 		method: "PUT",
 		url: "/match/update/:matchId",
-		preHandler: authMiddleware,
+		// preHandler: authMiddleware,
 		handler: MatchControler.update
 	},
 
@@ -182,13 +182,13 @@ const rutas = [
 	{
 		method: "POST",
 		url: "/tournaments",
-		preHandler: authMiddleware,
+		// preHandler: authMiddleware,
 		handler: TournamentController.createTournament
 	},
 	{
 		method: "POST",
 		url: "/tournaments/finish/:id",
-		preHandler: authMiddleware,
+		// preHandler: authMiddleware,
 		handler: TournamentController.finishTournament
 	}
 
