@@ -147,49 +147,42 @@ export function initializePongGame(container: HTMLElement) {
 		}
 
 		if (player2.isAlive) {
-			if (gameMode === 'ONE_PLAYER') {
-				const currentDifficulty = DIFFICULTY_LEVELS[difficulty];
-				const aiMaxSpeed = PADDLE_SPEED_CLASSIC * currentDifficulty.speedMultiplier;
+            if (gameMode === 'ONE_PLAYER') {
+                const currentDifficulty = DIFFICULTY_LEVELS[difficulty];
+                const aiMaxSpeed = PADDLE_SPEED_CLASSIC * currentDifficulty.speedMultiplier;
 				const now = performance.now();
 
-				if (now - aiLastUpdateTime > 1000) {
-				  aiLastUpdateTime = now;
-
-				  if (ball.dx > 0) {
-					const predictedY = predictBallTrajectory({ ...ball }, player2.x, canvas.height);
-					let errorMargin = 0;
-  					const paddleCenterOffset = player2.height / 2;
-
-  					switch (difficulty) {
-    					case 'EASY':
-    						errorMargin = paddleCenterOffset * 0.75 * (Math.random() * 2 - 1);
-      						break;
-    					case 'MEDIUM':
-    						errorMargin = paddleCenterOffset * 0.40 * (Math.random() * 2 - 1);
-    						break;
-    					case 'HARD':
-   						    errorMargin = paddleCenterOffset * 0.15 * (Math.random() * 2 - 1);
-   							break;
-   						 case 'IMPOSSIBLE':
-      						errorMargin = 0;
-     						break;
-  					}
-					aiTargetY = (predictedY + errorMargin) - paddleCenterOffset;
-				  } else {
-					aiTargetY = aiTargetY !== null ? aiTargetY : canvas.height / 2 - player2.height / 2;
-				  }
-				}
-
-				if (aiTargetY !== null) {
-					const deltaY = aiTargetY - player2.y;
-					player2.y += Math.max(-aiMaxSpeed, Math.min(aiMaxSpeed, deltaY));
-				}
-
-			} else {
-				playerVelocities.p2 = (keysPressed['l'] ? PADDLE_SPEED : 0) - (keysPressed['o'] ? PADDLE_SPEED : 0);
-				player2.y += playerVelocities.p2;
-			}
-		}
+                let updateIntervalMs = 0;
+                switch (difficulty) {
+                    case 'EASY':
+                        updateIntervalMs = 1000;
+                        break;
+                    case 'MEDIUM':
+                        updateIntervalMs = 350;
+                        break;
+                    case 'HARD':
+                        updateIntervalMs = 100;
+                        break;
+                }
+                if (now - aiLastUpdateTime >= updateIntervalMs) {
+                     aiLastUpdateTime = now;
+                    if (ball.dx > 0) {
+                        const predictedY = predictBallTrajectory({ ...ball }, player2.x, canvas.height);
+                        const paddleCenterOffset = player2.height / 2;
+                        aiTargetY = predictedY - paddleCenterOffset;
+                    } else {
+                         aiTargetY = aiTargetY !== null ? aiTargetY : canvas.height / 2 - player2.height / 2;
+                    }
+                }
+                if (aiTargetY !== null) {
+                    const deltaY = aiTargetY - player2.y;
+                    player2.y += Math.max(-aiMaxSpeed, Math.min(aiMaxSpeed, deltaY));
+                }
+            } else {
+                playerVelocities.p2 = (keysPressed['l'] ? PADDLE_SPEED : 0) - (keysPressed['o'] ? PADDLE_SPEED : 0);
+                player2.y += playerVelocities.p2;
+            }
+        }
 
 		player1.y = Math.max(0, Math.min(player1.y, canvas.height - player1.height));
 		player2.y = Math.max(0, Math.min(player2.y, canvas.height - player2.height));
