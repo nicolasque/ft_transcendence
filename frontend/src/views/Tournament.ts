@@ -7,14 +7,14 @@ let gameType: 'pong' | 'tictactoe' = 'pong';
 
 // --- Interfaz User (restauramos guestAlias) ---
 interface User {
-    id: number;
-    username: string; // Este será el username real (e.g., guest1), no el alias
-    email?: string;
-    elo?: number;
-    avatar_url?: string;
-    is_guest?: boolean; // Flag de la BD
-    isGuest?: boolean; // Flag frontend para tipo seleccionado
-    guestAlias?: string; // Alias personalizado en el frontend
+	id: number;
+	username: string; // Este será el username real (e.g., guest1), no el alias
+	email?: string;
+	elo?: number;
+	avatar_url?: string;
+	is_guest?: boolean; // Flag de la BD
+	isGuest?: boolean; // Flag frontend para tipo seleccionado
+	guestAlias?: string; // Alias personalizado en el frontend
 }
 
 let participants: (User | null)[] = [];
@@ -23,61 +23,61 @@ let availableGuests: User[] = []; // Lista COMPLETA de guests de la BD
 
 // --- Funciones fetchFriends y fetchGuests (sin cambios) ---
 async function fetchFriends(): Promise<User[]> {
-    try {
-        const response = await authenticatedFetch('/api/friends');
-        if (!response.ok) throw new Error(i18next.t('errorLoadingFriends'));
-        return await response.json();
-    } catch (error) {
-        console.error("Error fetching friends:", error);
-        alert((error as Error).message);
-        return [];
-    }
+	try {
+		const response = await authenticatedFetch('/api/friends');
+		if (!response.ok) throw new Error(i18next.t('errorLoadingFriends'));
+		return await response.json();
+	} catch (error) {
+		console.error("Error fetching friends:", error);
+		alert((error as Error).message);
+		return [];
+	}
 }
 
 async function fetchGuests(): Promise<User[]> {
-    try {
-        // Usar is_guest=1 como confirmaste
-        const response = await authenticatedFetch('/api/users?is_guest=1');
-        if (!response.ok) throw new Error(i18next.t('Error cargando invitados', { ns: 'translation', defaultValue: 'Error loading guests' }));
-        const guests: User[] = await response.json();
-        return guests.map(g => ({ ...g, is_guest: true }));
-    } catch (error) {
-        console.error("Error fetching guests:", error);
-        alert((error as Error).message);
-        return [];
-    }
+	try {
+		// Usar is_guest=1 como confirmaste
+		const response = await authenticatedFetch('/api/users?is_guest=1');
+		if (!response.ok) throw new Error(i18next.t('Error cargando invitados', { ns: 'translation', defaultValue: 'Error loading guests' }));
+		const guests: User[] = await response.json();
+		return guests.map(g => ({ ...g, is_guest: true }));
+	} catch (error) {
+		console.error("Error fetching guests:", error);
+		alert((error as Error).message);
+		return [];
+	}
 }
 
 // --- Función actualizada para renderizar las cajas ---
 function renderParticipantBoxes(count: number, container: HTMLElement, currentUser: User) {
-    container.innerHTML = '';
-    const initialParticipants: (User | null)[] = [{ ...currentUser, isGuest: false, is_guest: false }];
-    for (let i = 1; i < count; i++) {
-        initialParticipants.push(participants[i] || null);
-    }
-    participants = initialParticipants.slice(0, count); // Actualiza globalmente
+	container.innerHTML = '';
+	const initialParticipants: (User | null)[] = [{ ...currentUser, isGuest: false, is_guest: false }];
+	for (let i = 1; i < count; i++) {
+		initialParticipants.push(participants[i] || null);
+	}
+	participants = initialParticipants.slice(0, count); // Actualiza globalmente
 
-    for (let i = 0; i < count; i++) {
-        const participantBox = document.createElement('div');
-        participantBox.className = 'participant-box bg-gray-800 p-4 rounded mb-2 border border-gray-700';
-        participantBox.dataset.index = i.toString();
-        let boxContent: string;
+	for (let i = 0; i < count; i++) {
+		const participantBox = document.createElement('div');
+		participantBox.className = 'participant-box bg-gray-800 p-4 rounded mb-2 border border-gray-700';
+		participantBox.dataset.index = i.toString();
+		let boxContent: string;
 
-        if (i === 0) {
-            // Caja para el usuario actual
-            boxContent = `
+		if (i === 0) {
+			// Caja para el usuario actual
+			boxContent = `
                 <p class="text-white font-bold text-lg">${currentUser.username} (${i18next.t('Tú')})</p>
                 <input type="hidden" name="participant-${i}-id" value="${currentUser.id}">
                 <input type="hidden" name="participant-${i}-type" value="user">
             `;
-        } else {
-            const currentParticipant = participants[i];
-            const isGuestSelected = currentParticipant?.isGuest === true || (!currentParticipant?.hasOwnProperty('isGuest') && currentParticipant?.is_guest === true);
-            const selectedFriendId = (!isGuestSelected && currentParticipant) ? currentParticipant.id : '';
-            // No necesitamos selectedGuestId aquí porque no hay <select>
-            const guestAliasValue = isGuestSelected ? (currentParticipant?.guestAlias || '') : ''; // Recuperar alias si ya existe
+		} else {
+			const currentParticipant = participants[i];
+			const isGuestSelected = currentParticipant?.isGuest === true || (!currentParticipant?.hasOwnProperty('isGuest') && currentParticipant?.is_guest === true);
+			const selectedFriendId = (!isGuestSelected && currentParticipant) ? currentParticipant.id : '';
+			// No necesitamos selectedGuestId aquí porque no hay <select>
+			const guestAliasValue = isGuestSelected ? (currentParticipant?.guestAlias || '') : ''; // Recuperar alias si ya existe
 
-            boxContent = `
+			boxContent = `
                 <label class="block text-lg font-medium text-gray-300 mb-2">${i18next.t('Participante')} ${i + 1}:</label>
                 <div class="flex items-center space-x-4 mb-3">
                     <label class="flex items-center text-white cursor-pointer">
@@ -102,198 +102,198 @@ function renderParticipantBoxes(count: number, container: HTMLElement, currentUs
                      </p>
                 </div>
             `;
-        }
+		}
 
-        participantBox.innerHTML = boxContent;
-        container.appendChild(participantBox);
+		participantBox.innerHTML = boxContent;
+		container.appendChild(participantBox);
 
-        // Adjuntar listeners
-        if (i > 0) {
-            participantBox.querySelectorAll(`.participant-type-radio`).forEach(radio => {
-                radio.addEventListener('change', handleParticipantTypeChange);
-            });
-            participantBox.querySelector('.participant-select-friend')?.addEventListener('change', handleFriendSelectionChange);
-            // Listener SOLO para el input de alias
-            participantBox.querySelector('.participant-input-guest-alias')?.addEventListener('input', handleGuestAliasChange);
-            participantBox.querySelector('.participant-input-guest-alias')?.addEventListener('change', handleGuestAliasChange); // Captura final
-        }
-    }
-    console.log("Participantes al final de renderParticipantBoxes:", JSON.parse(JSON.stringify(participants)));
+		// Adjuntar listeners
+		if (i > 0) {
+			participantBox.querySelectorAll(`.participant-type-radio`).forEach(radio => {
+				radio.addEventListener('change', handleParticipantTypeChange);
+			});
+			participantBox.querySelector('.participant-select-friend')?.addEventListener('change', handleFriendSelectionChange);
+			// Listener SOLO para el input de alias
+			participantBox.querySelector('.participant-input-guest-alias')?.addEventListener('input', handleGuestAliasChange);
+			participantBox.querySelector('.participant-input-guest-alias')?.addEventListener('change', handleGuestAliasChange); // Captura final
+		}
+	}
+	console.log("Participantes al final de renderParticipantBoxes:", JSON.parse(JSON.stringify(participants)));
 }
 
 // --- Handlers modificados ---
 
 function handleParticipantTypeChange(event: Event) {
-    try {
-        const target = event.target as HTMLInputElement;
-        const index = parseInt(target.dataset.index || '0');
-        if (index <= 0 || index >= participants.length) return;
-        const isGuest = target.value === 'guest';
-        const box = target.closest('.participant-box') as HTMLElement;
-        const participantsContainer = document.getElementById('participants-container')!;
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+	try {
+		const target = event.target as HTMLInputElement;
+		const index = parseInt(target.dataset.index || '0');
+		if (index <= 0 || index >= participants.length) return;
+		const isGuest = target.value === 'guest';
+		const box = target.closest('.participant-box') as HTMLElement;
+		const participantsContainer = document.getElementById('participants-container')!;
+		const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
-        console.log(`Caja ${index}: Cambiado tipo a ${isGuest ? 'Invitado' : 'Amigo'}`);
+		console.log(`Caja ${index}: Cambiado tipo a ${isGuest ? 'Invitado' : 'Amigo'}`);
 
-        // Ocultar/Mostrar secciones
-        document.getElementById(`friend-selector-${index}`)?.classList.toggle('hidden', isGuest);
-        document.getElementById(`guest-alias-input-${index}`)?.classList.toggle('hidden', !isGuest);
+		// Ocultar/Mostrar secciones
+		document.getElementById(`friend-selector-${index}`)?.classList.toggle('hidden', isGuest);
+		document.getElementById(`guest-alias-input-${index}`)?.classList.toggle('hidden', !isGuest);
 
-        if (isGuest) {
-            // --- Lógica de Asignación Automática ---
-            // 1. Obtener IDs de guests ya asignados en *otras* cajas
-            const assignedGuestIds = new Set(
-                participants
-                    .map((p, idx) => (p?.is_guest && idx !== index ? p.id : null))
-                    .filter(id => id !== null && id >= 0) as number[]
-            );
+		if (isGuest) {
+			// --- Lógica de Asignación Automática ---
+			// 1. Obtener IDs de guests ya asignados en *otras* cajas
+			const assignedGuestIds = new Set(
+				participants
+					.map((p, idx) => (p?.is_guest && idx !== index ? p.id : null))
+					.filter(id => id !== null && id >= 0) as number[]
+			);
 
-            // 2. Encontrar el primer guest disponible que no esté ya asignado
-            const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
+			// 2. Encontrar el primer guest disponible que no esté ya asignado
+			const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
 
-            if (nextAvailableGuest) {
-                // 3. Asignar este guest al slot actual
-                const aliasInput = box.querySelector('.participant-input-guest-alias') as HTMLInputElement;
-                const currentAlias = aliasInput.value.trim() || `${i18next.t('Invitado')} ${index + 1}`; // Mantener alias si ya había
-                participants[index] = {
-                    ...nextAvailableGuest, // Copia datos del guest real
-                    isGuest: true,         // Flag frontend
-                    is_guest: true,        // Flag BD
-                    guestAlias: currentAlias // Guardar alias
-                };
-                console.log(`Caja ${index}: Asignado automáticamente guest ID ${nextAvailableGuest.id} (${nextAvailableGuest.username})`);
-            } else {
-                // No quedan guests disponibles
-                alert(i18next.t('No hay suficientes usuarios invitados disponibles', { ns: 'translation', defaultValue: 'Not enough guest users available' }));
-                // Resetear radio a 'Amigo' o dejar el slot vacío y mostrar error
-                (target as HTMLInputElement).checked = false; // Desmarcar 'Invitado'
-                const friendRadio = box.querySelector(`input[name="participant-${index}-type"][value="friend"]`) as HTMLInputElement;
-                if (friendRadio) friendRadio.checked = true; // Marcar 'Amigo' de nuevo
-                document.getElementById(`friend-selector-${index}`)?.classList.remove('hidden');
-                document.getElementById(`guest-alias-input-${index}`)?.classList.add('hidden');
-                participants[index] = null; // Dejar slot vacío
-                console.warn(`Caja ${index}: No se encontraron guests disponibles.`);
-            }
-            // Limpiar selección de amigo si existía
-            (box.querySelector('.participant-select-friend') as HTMLSelectElement).value = "";
+			if (nextAvailableGuest) {
+				// 3. Asignar este guest al slot actual
+				const aliasInput = box.querySelector('.participant-input-guest-alias') as HTMLInputElement;
+				const currentAlias = aliasInput.value.trim() || `${i18next.t('Invitado')} ${index + 1}`; // Mantener alias si ya había
+				participants[index] = {
+					...nextAvailableGuest, // Copia datos del guest real
+					isGuest: true,         // Flag frontend
+					is_guest: true,        // Flag BD
+					guestAlias: currentAlias // Guardar alias
+				};
+				console.log(`Caja ${index}: Asignado automáticamente guest ID ${nextAvailableGuest.id} (${nextAvailableGuest.username})`);
+			} else {
+				// No quedan guests disponibles
+				alert(i18next.t('No hay suficientes usuarios invitados disponibles', { ns: 'translation', defaultValue: 'Not enough guest users available' }));
+				// Resetear radio a 'Amigo' o dejar el slot vacío y mostrar error
+				(target as HTMLInputElement).checked = false; // Desmarcar 'Invitado'
+				const friendRadio = box.querySelector(`input[name="participant-${index}-type"][value="friend"]`) as HTMLInputElement;
+				if (friendRadio) friendRadio.checked = true; // Marcar 'Amigo' de nuevo
+				document.getElementById(`friend-selector-${index}`)?.classList.remove('hidden');
+				document.getElementById(`guest-alias-input-${index}`)?.classList.add('hidden');
+				participants[index] = null; // Dejar slot vacío
+				console.warn(`Caja ${index}: No se encontraron guests disponibles.`);
+			}
+			// Limpiar selección de amigo si existía
+			(box.querySelector('.participant-select-friend') as HTMLSelectElement).value = "";
 
-        } else { // Cambiando a Amigo
-            // Limpiar alias si existía
-             (box.querySelector('.participant-input-guest-alias') as HTMLInputElement).value = "";
-            // Restaurar amigo si estaba seleccionado o poner null
-            const friendSelect = box.querySelector('.participant-select-friend') as HTMLSelectElement;
-            const selectedFriendId = friendSelect ? parseInt(friendSelect.value) : NaN;
-            if (!isNaN(selectedFriendId) && selectedFriendId > 0) {
-                const selectedFriend = allFriends.find(f => f.id === selectedFriendId);
-                 participants[index] = selectedFriend ? { ...selectedFriend, isGuest: false, is_guest: false } : null;
-            } else {
-                participants[index] = null;
-            }
-        }
+		} else { // Cambiando a Amigo
+			// Limpiar alias si existía
+			(box.querySelector('.participant-input-guest-alias') as HTMLInputElement).value = "";
+			// Restaurar amigo si estaba seleccionado o poner null
+			const friendSelect = box.querySelector('.participant-select-friend') as HTMLSelectElement;
+			const selectedFriendId = friendSelect ? parseInt(friendSelect.value) : NaN;
+			if (!isNaN(selectedFriendId) && selectedFriendId > 0) {
+				const selectedFriend = allFriends.find(f => f.id === selectedFriendId);
+				participants[index] = selectedFriend ? { ...selectedFriend, isGuest: false, is_guest: false } : null;
+			} else {
+				participants[index] = null;
+			}
+		}
 
-        // Re-renderizar TODAS las cajas para actualizar la disponibilidad y mostrar guest asignado
-        renderParticipantBoxes(participants.length, participantsContainer, currentUser);
+		// Re-renderizar TODAS las cajas para actualizar la disponibilidad y mostrar guest asignado
+		renderParticipantBoxes(participants.length, participantsContainer, currentUser);
 
-    } catch (error) {
-         console.error("Error en handleParticipantTypeChange:", error);
-    }
+	} catch (error) {
+		console.error("Error en handleParticipantTypeChange:", error);
+	}
 }
 
 function handleFriendSelectionChange(event: Event) {
-     try {
-        const selectElement = event.target as HTMLSelectElement;
-        const index = parseInt(selectElement.dataset.index || '0');
-        if (index <= 0 || index >= participants.length) return;
-        const selectedFriendId = parseInt(selectElement.value);
-        const participantsContainer = document.getElementById('participants-container')!;
-        const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+	try {
+		const selectElement = event.target as HTMLSelectElement;
+		const index = parseInt(selectElement.dataset.index || '0');
+		if (index <= 0 || index >= participants.length) return;
+		const selectedFriendId = parseInt(selectElement.value);
+		const participantsContainer = document.getElementById('participants-container')!;
+		const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
-        console.log(`Caja ${index}: Amigo seleccionado ID: ${selectedFriendId || 'ninguno'}`);
+		console.log(`Caja ${index}: Amigo seleccionado ID: ${selectedFriendId || 'ninguno'}`);
 
-        if (selectedFriendId) {
-            const selectedFriend = allFriends.find(f => f.id === selectedFriendId);
-            participants[index] = selectedFriend ? { ...selectedFriend, isGuest: false, is_guest: false } : null;
-        } else {
-            participants[index] = null;
-        }
+		if (selectedFriendId) {
+			const selectedFriend = allFriends.find(f => f.id === selectedFriendId);
+			participants[index] = selectedFriend ? { ...selectedFriend, isGuest: false, is_guest: false } : null;
+		} else {
+			participants[index] = null;
+		}
 
-        // Re-renderizar podría ser necesario si la selección afecta la disponibilidad (aunque aquí no directamente)
-        // Optamos por no re-renderizar para mejor UX al seleccionar amigos.
-        // renderParticipantBoxes(participants.length, participantsContainer, currentUser);
+		// Re-renderizar podría ser necesario si la selección afecta la disponibilidad (aunque aquí no directamente)
+		// Optamos por no re-renderizar para mejor UX al seleccionar amigos.
+		// renderParticipantBoxes(participants.length, participantsContainer, currentUser);
 
-        console.log("Array completo tras selección amigo:", JSON.parse(JSON.stringify(participants)));
+		console.log("Array completo tras selección amigo:", JSON.parse(JSON.stringify(participants)));
 
 
-    } catch (error) {
-        console.error("Error en handleFriendSelectionChange:", error);
-    }
+	} catch (error) {
+		console.error("Error en handleFriendSelectionChange:", error);
+	}
 }
 
 // Eliminamos handleGuestSelectionChange ya que no hay <select>
 
 function handleGuestAliasChange(event: Event) {
-     try {
-        const inputElement = event.target as HTMLInputElement;
-        const index = parseInt(inputElement.dataset.index || '0');
-        if (index <= 0 || index >= participants.length) return;
-        const alias = inputElement.value.trim();
+	try {
+		const inputElement = event.target as HTMLInputElement;
+		const index = parseInt(inputElement.dataset.index || '0');
+		if (index <= 0 || index >= participants.length) return;
+		const alias = inputElement.value.trim();
 
-        // Actualizar alias si hay un participante guest ASIGNADO en este slot
-        if (participants[index] && participants[index]?.is_guest) { // Usamos is_guest porque el objeto es el real de la BD
-             participants[index]!.guestAlias = alias || `${i18next.t('Invitado')} ${index + 1}`; // Usar alias o default
-             console.log(`Caja ${index}: Alias para guest ID ${participants[index]?.id} actualizado a "${participants[index]!.guestAlias}"`);
-             // NO re-renderizar para mantener foco
-        } else {
-             console.log(`Caja ${index}: Intento de actualizar alias, pero no hay guest asignado.`);
-        }
-    } catch (error) {
-         console.error("Error en handleGuestAliasChange:", error);
-    }
+		// Actualizar alias si hay un participante guest ASIGNADO en este slot
+		if (participants[index] && participants[index]?.is_guest) { // Usamos is_guest porque el objeto es el real de la BD
+			participants[index]!.guestAlias = alias || `${i18next.t('Invitado')} ${index + 1}`; // Usar alias o default
+			console.log(`Caja ${index}: Alias para guest ID ${participants[index]?.id} actualizado a "${participants[index]!.guestAlias}"`);
+			// NO re-renderizar para mantener foco
+		} else {
+			console.log(`Caja ${index}: Intento de actualizar alias, pero no hay guest asignado.`);
+		}
+	} catch (error) {
+		console.error("Error en handleGuestAliasChange:", error);
+	}
 }
 
 
 // --- Función principal renderTournament (sin cambios significativos) ---
 export async function renderTournament(appElement: HTMLElement): Promise<void> {
-    // ... (igual que antes: currentUser, carga paralela de friends y guests) ...
-     if (!appElement) return;
+	// ... (igual que antes: currentUser, carga paralela de friends y guests) ...
+	if (!appElement) return;
 
-    const currentUser: User | null = JSON.parse(localStorage.getItem('user') || 'null');
-    if (!currentUser) {
-        navigate('/login');
-        return;
-    }
-    currentUser.isGuest = false;
-    currentUser.is_guest = false;
+	const currentUser: User | null = JSON.parse(localStorage.getItem('user') || 'null');
+	if (!currentUser) {
+		navigate('/login');
+		return;
+	}
+	currentUser.isGuest = false;
+	currentUser.is_guest = false;
 
-    try {
-        [allFriends, availableGuests] = await Promise.all([
-            fetchFriends(),
-            fetchGuests()
-        ]);
-        console.log("Datos cargados:", { numFriends: allFriends.length, numGuests: availableGuests.length });
-        if (availableGuests.length === 0) {
-             console.warn("Advertencia: No se encontraron usuarios guest disponibles en la base de datos.");
-             // Considera mostrar un mensaje al usuario aquí si es crítico
-        }
-    } catch (error) {
-        console.error("Error crítico cargando datos iniciales:", error);
-         appElement.innerHTML = `<div class="text-red-500 p-4">${(error as Error).message}. Por favor, recarga la página.</div>`;
-         return;
-    }
+	try {
+		[allFriends, availableGuests] = await Promise.all([
+			fetchFriends(),
+			fetchGuests()
+		]);
+		console.log("Datos cargados:", { numFriends: allFriends.length, numGuests: availableGuests.length });
+		if (availableGuests.length === 0) {
+			console.warn("Advertencia: No se encontraron usuarios guest disponibles en la base de datos.");
+			// Considera mostrar un mensaje al usuario aquí si es crítico
+		}
+	} catch (error) {
+		console.error("Error crítico cargando datos iniciales:", error);
+		appElement.innerHTML = `<div class="text-red-500 p-4">${(error as Error).message}. Por favor, recarga la página.</div>`;
+		return;
+	}
 
-    const initialCountElement = document.getElementById('participant-count') as HTMLSelectElement | null;
-    const initialCount = initialCountElement ? parseInt(initialCountElement.value) : 4;
+	const initialCountElement = document.getElementById('participant-count') as HTMLSelectElement | null;
+	const initialCount = initialCountElement ? parseInt(initialCountElement.value) : 4;
 
-    if (!Array.isArray(participants) || participants.length === 0 || !participants[0] || participants[0].id !== currentUser.id) {
-        participants = new Array(initialCount).fill(null);
-        participants[0] = { ...currentUser, isGuest: false, is_guest: false };
-    } else {
-        while (participants.length < initialCount) participants.push(null);
-        if (participants.length > initialCount) participants.length = initialCount;
-    }
+	if (!Array.isArray(participants) || participants.length === 0 || !participants[0] || participants[0].id !== currentUser.id) {
+		participants = new Array(initialCount).fill(null);
+		participants[0] = { ...currentUser, isGuest: false, is_guest: false };
+	} else {
+		while (participants.length < initialCount) participants.push(null);
+		if (participants.length > initialCount) participants.length = initialCount;
+	}
 
-    // --- HTML (igual que antes) ---
-    appElement.innerHTML = `
+	// --- HTML (igual que antes) ---
+	appElement.innerHTML = `
     <div class="h-screen flex flex-col items-center p-4 md:p-8 overflow-y-auto font-press-start text-white">
         <div class="w-full flex justify-center mb-8 flex-shrink-0">
              <button id="homeButton" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
@@ -331,118 +331,173 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
     </div>
     `;
 
-    // --- Listeners ---
-    playTrack('/assets/Techno_Syndrome.mp3');
-    document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+	// --- Listeners ---
+	playTrack('/assets/Techno_Syndrome.mp3');
+	document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
 
-    const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
-    const participantsContainer = document.getElementById('participants-container')!;
-    const gameTypeSelect = document.getElementById('game-type') as HTMLSelectElement;
-    const startTournamentButton = document.getElementById('start-tournament-button');
+	const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
+	const participantsContainer = document.getElementById('participants-container')!;
+	const gameTypeSelect = document.getElementById('game-type') as HTMLSelectElement;
+	const startTournamentButton = document.getElementById('start-tournament-button');
 
-    gameType = gameTypeSelect.value as 'pong' | 'tictactoe';
-    gameTypeSelect.addEventListener('change', () => {
-         gameType = gameTypeSelect.value as 'pong' | 'tictactoe';
-    });
+	gameType = gameTypeSelect.value as 'pong' | 'tictactoe';
+	gameTypeSelect.addEventListener('change', () => {
+		gameType = gameTypeSelect.value as 'pong' | 'tictactoe';
+	});
 
-    participantCountSelect.addEventListener('change', () => {
-        const count = parseInt(participantCountSelect.value);
-        // Ajustar tamaño array ANTES de renderizar
-         while (participants.length < count) participants.push(null);
-         if (participants.length > count) participants.length = count;
-        // Llamar a renderizar DESPUÉS de ajustar el array
-        renderParticipantBoxes(count, participantsContainer, currentUser);
-    });
+	participantCountSelect.addEventListener('change', () => {
+		const count = parseInt(participantCountSelect.value);
+		// Ajustar tamaño array ANTES de renderizar
+		while (participants.length < count) participants.push(null);
+		if (participants.length > count) participants.length = count;
+		// Llamar a renderizar DESPUÉS de ajustar el array
+		renderParticipantBoxes(count, participantsContainer, currentUser);
+	});
 
-    // Render inicial
-    renderParticipantBoxes(parseInt(participantCountSelect.value), participantsContainer, currentUser);
+	// Render inicial
+	renderParticipantBoxes(parseInt(participantCountSelect.value), participantsContainer, currentUser);
 
-    startTournamentButton?.addEventListener('click', handleStartTournament);
+	startTournamentButton?.addEventListener('click', handleStartTournament);
 }
 
 // --- Handler iniciar torneo (ajustado para usar IDs reales de guests) ---
+// --- Handler iniciar torneo (modificado al final) ---
 async function handleStartTournament() {
-    const tournamentNameInput = document.getElementById('tournament-name') as HTMLInputElement;
-    const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
-    const name = tournamentNameInput.value.trim() || `${i18next.t('Torneo Rápido')}`;
-    const selectedCount = parseInt(participantCountSelect.value);
+	// ... (inicio de la función igual que antes: obtener name, selectedCount, validaciones, etc.)
+	const tournamentNameInput = document.getElementById('tournament-name') as HTMLInputElement;
+	const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
+	const name = tournamentNameInput.value.trim() || `${i18next.t('Torneo Rápido')}`;
+	const selectedCount = parseInt(participantCountSelect.value);
 
-    const finalParticipantIds: number[] = [];
-    const guestAliasMap: { [key: number]: string } = {}; // { guestIdReal: alias }
+	const finalParticipantIds: number[] = [];
+	const guestAliasMap: { [key: number]: string } = {};
 
-    console.log("Estado final de 'participants' antes de enviar:", JSON.parse(JSON.stringify(participants)));
+	console.log("Estado de 'participants' antes de enviar:", JSON.parse(JSON.stringify(participants)));
 
-    for (let i = 0; i < selectedCount; i++) {
-        const participant = participants[i];
+	for (let i = 0; i < selectedCount; i++) {
+		const participant = participants[i];
+		if (!participant || participant.id == null || participant.id < 0) {
+			alert(`${i18next.t('Debes completar la selección para el Participante')} ${i + 1}.`);
+			return;
+		}
+		finalParticipantIds.push(participant.id);
+		if (participant.is_guest) {
+			guestAliasMap[participant.id] = participant.guestAlias || participant.username;
+		}
+	}
+	// ... (Validaciones de duplicados y conteo igual que antes) ...
+	if (new Set(finalParticipantIds).size !== finalParticipantIds.length) {
+		alert(`${i18next.t('No puedes añadir al mismo participante (amigo o invitado) varias veces.')}`);
+		return;
+	}
+	if (finalParticipantIds.length !== selectedCount) {
+		alert(`${i18next.t('Error: Se esperaban')} ${selectedCount} ${i18next.t('participantes pero se procesaron')} ${finalParticipantIds.length}.`);
+		return;
+	}
 
-        // Validar que el slot esté lleno y tenga un ID válido (no null, no negativo)
-        if (!participant || participant.id == null || participant.id < 0) {
-            alert(`${i18next.t('Debes completar la selección para el Participante')} ${i + 1}.`);
-            return;
-        }
 
-        finalParticipantIds.push(participant.id); // ID real (sea amigo, user o guest asignado)
+	console.log("Iniciando torneo:", name, gameType);
+	console.log("IDs Finales (incluye guests):", finalParticipantIds);
+	console.log("Mapa de Alias Invitados:", guestAliasMap);
+	console.log("Total Participantes:", selectedCount);
 
-        // Si es un guest (identificado por flag de BD), guardar su alias en el mapa
-        if (participant.is_guest) {
-            // Usar alias personalizado o el username real del guest si no hay alias
-            guestAliasMap[participant.id] = participant.guestAlias || participant.username;
-        }
-    }
+	// --- Petición al Backend (CON guestAliasMap) ---
+	try {
+		const response = await authenticatedFetch('/api/tournaments', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				name: name,
+				game: gameType,
+				participants: finalParticipantIds,
+				totalParticipants: selectedCount,
+				guestAliasMap: guestAliasMap
+			}),
+		});
+		const result = await response.json();
+		if (!response.ok) {
+			let errorMsg = result.message || 'Error al crear el torneo en el backend';
+			// ... (manejo de errores específicos)
+			if (response.status === 400 && errorMsg?.includes("potencia de 2")) {
+				errorMsg = i18next.t('El número de participantes debe ser una potencia de 2 (4, 8, 16...).');
+			} else if (response.status === 400 && errorMsg?.includes("participantes insuficientes")) {
+				errorMsg = i18next.t('Se requieren al menos 4 participantes.');
+			} else if (response.status === 500 && errorMsg?.includes("invitados disponibles")) {
+				errorMsg = i18next.t('No hay suficientes usuarios invitados disponibles en la base de datos para completar el torneo.');
+			}
+			throw new Error(errorMsg);
+		}
 
-    // Validar duplicados (con IDs reales)
-    if (new Set(finalParticipantIds).size !== finalParticipantIds.length) {
-        alert(`${i18next.t('No puedes añadir al mismo participante (amigo o invitado) varias veces.')}`);
-        return;
-    }
+		console.log("Torneo creado:", result);
 
-    // Validación de conteo
-    if (finalParticipantIds.length !== selectedCount) {
-        alert(`${i18next.t('Error: Se esperaban')} ${selectedCount} ${i18next.t('participantes pero se procesaron')} ${finalParticipantIds.length}.`);
-        return;
-    }
+		// --- INICIO: Cambios para nueva página ---
+		// Guardar la información necesaria para la siguiente pantalla
+		// Es crucial que el backend devuelva la lista final de participantes
+		// con sus IDs reales (incluyendo los guests asignados) y sus usernames originales.
+		// --- INICIO: Cambios Robustos para nueva página ---
+		const tournamentId = result.tournament?.id; // Aún necesitamos el ID del torneo creado
 
-    console.log("Iniciando torneo:", name, gameType);
-    console.log("IDs Finales (incluye guests):", finalParticipantIds);
-    console.log("Mapa de Alias Invitados:", guestAliasMap);
-    console.log("Total Participantes:", selectedCount);
+		if (!tournamentId) {
+			console.error("La respuesta del backend no incluyó el ID del torneo.");
+			alert("Error al procesar la respuesta del servidor (faltan datos).");
+			return;
+		}
 
-    // --- Petición al Backend ---
-    try {
-        const response = await authenticatedFetch('/api/tournaments', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                name: name,
-                game: gameType,
-                participants: finalParticipantIds, // Lista completa de IDs REALES
-                totalParticipants: selectedCount,
-                guestAliasMap: guestAliasMap      // Mapa { guestIdReal: alias }
-            }),
-        });
-        const result = await response.json();
-        if (!response.ok) {
-            let errorMsg = result.message || 'Error al crear el torneo en el backend';
-            // ... (manejo de errores específicos)
-            if (response.status === 400 && errorMsg?.includes("potencia de 2")) {
-                 errorMsg = i18next.t('El número de participantes debe ser una potencia de 2 (4, 8, 16...).');
-             } else if (response.status === 400 && errorMsg?.includes("participantes insuficientes")) {
-                  errorMsg = i18next.t('Se requieren al menos 4 participantes.');
-             } else if (response.status === 500 && errorMsg?.includes("invitados disponibles")) {
-                  // Este error ahora sería menos probable si la validación frontend funciona
-                  errorMsg = i18next.t('No hay suficientes usuarios invitados disponibles en la base de datos para completar el torneo.');
-             }
-            throw new Error(errorMsg);
-        }
-        console.log("Torneo creado:", result);
-        // Guardar mapa de alias para mostrar en bracket si es necesario
-        localStorage.setItem('tournamentGuestAliasMap', JSON.stringify(guestAliasMap));
-        localStorage.setItem('tournamentParticipants', JSON.stringify(result.tournament?.participants || finalParticipantIds)); // Lista final
-        alert(`¡${i18next.t('Torneo')} "${name}" ${i18next.t('creado con éxito')}!`);
-        participants = []; // Limpiar estado local
-        navigate('/start');
-    } catch (error) {
-        console.error("Error al iniciar el torneo:", error);
-        alert(`${i18next.t('Error al crear torneo')}: ${(error as Error).message}`);
-    }
+		// Construir la lista de participantes para la siguiente página
+		// USANDO los datos que ya tenemos en el frontend
+		const participantsForNextPage = finalParticipantIds.map(id => {
+			// Buscar el participante original en nuestro array 'participants' local
+			// Esto es crucial para obtener el username REAL y el ALIAS si era guest
+			const originalParticipant = participants.find(p => p?.id === id);
+
+			let displayName = originalParticipant?.username || `Usuario ${id}`; // Default
+			let realUsername = originalParticipant?.username || `Usuario ${id}`; // Default
+			let isGuest = originalParticipant?.is_guest || false; // Default a no ser guest
+
+			// Si era un guest, usar el alias guardado o su username real si no hay alias
+			if (isGuest && guestAliasMap[id]) {
+				displayName = guestAliasMap[id];
+			} else if (isGuest) {
+				displayName = originalParticipant?.username || `Guest ${id}`; // Fallback al username real del guest
+			}
+
+
+			return {
+				id: id,
+				username: realUsername, // Guardamos el username real (guestX)
+				displayName: displayName, // Guardamos el alias o username para mostrar
+				is_guest: isGuest
+				// Puedes añadir más campos aquí si los tienes en 'originalParticipant'
+				// elo: originalParticipant?.elo,
+				// avatar_url: originalParticipant?.avatar_url
+			};
+		});
+
+
+		// Guardar en localStorage
+		localStorage.setItem('currentTournamentId', tournamentId.toString());
+		localStorage.setItem('currentTournamentParticipants', JSON.stringify(participantsForNextPage)); // Guardar nuestra lista construida
+		localStorage.setItem('currentTournamentGame', gameType);
+
+		console.log("Datos guardados para la página de torneo:", {
+			tournamentId,
+			participants: participantsForNextPage,
+			gameType
+		});
+
+
+		alert(`¡${i18next.t('Torneo')} "${name}" ${i18next.t('creado con éxito')}!`);
+
+		// Limpiar estado local de ESTA página
+		participants = [];
+		allFriends = [];
+		availableGuests = [];
+
+		// Navegar a la nueva página del torneo
+		navigate(`/tournament-match/${tournamentId}`);
+		// --- FIN: Cambios Robustos para nueva página ---
+	} catch (error) {
+		console.error("Error al iniciar el torneo:", error);
+		alert(`${i18next.t('Error al crear torneo')}: ${(error as Error).message}`);
+	}
 }
