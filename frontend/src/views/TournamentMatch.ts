@@ -190,8 +190,8 @@ async function manageTournamentState(participants: ParticipantInfo[]) {
 	if (nextMatch) {
 		pongContainer.innerHTML = `
             <div class="text-center">
-                <h3 class="text-2xl mb-4">Próxima Partida</h3>
-                <p class="text-xl mb-6">${nextMatch.player_one!.displayName} vs ${nextMatch.player_two!.displayName}</p>
+                <h3 class="text-black text-2xl mb-4">Próxima Partida</h3>
+                <p class="text-black text-xl mb-6">${nextMatch.player_one!.displayName} vs ${nextMatch.player_two!.displayName}</p>
                 <button id="play-match-btn" class="px-6 py-3 bg-green-600 rounded hover:bg-green-500 transition-colors">Jugar Partida</button>
             </div>
         `;
