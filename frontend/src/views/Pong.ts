@@ -32,7 +32,7 @@ function predictBallTrajectory(ball: BallObject, targetX: number, canvasHeight: 
     return ball.y;
 }
 
-export function initializePongGame(container: HTMLElement, player1?: ParticipantInfo, player2?: ParticipantInfo) {
+export function initializePongGame(container: HTMLElement, player1?: ParticipantInfo, player2?: ParticipantInfo, matchId_Variatic?: number) {
 	container.innerHTML = `
 	  <div class="h-screen w-full flex flex-col items-center justify-center p-4 text-white font-press-start">
 		<main class="relative w-full max-w-6xl">

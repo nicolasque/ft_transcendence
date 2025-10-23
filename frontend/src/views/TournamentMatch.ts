@@ -1,11 +1,12 @@
 import { navigate } from '../main';
 import { playTrack } from '../utils/musicPlayer';
-import { protectedRoute } from '../utils/auth.ts';
+import { authenticatedFetch, protectedRoute } from '../utils/auth.ts';
 
 import { GameObjects, Score, GameMode, DifficultyLevel, PaddleObject, BallObject } from '../utils/types';
 import { PADDLE_THICKNESS, BALL_RADIUS, WINNING_SCORE, INITIAL_BALL_SPEED, ACCELERATION_FACTOR, DIFFICULTY_LEVELS, MAX_BOUNCE_ANGLE, PADDLE_INFLUENCE_FACTOR, MAX_BALL_SPEED, PADDLE_LENGTH_CLASSIC, PADDLE_SPEED_CLASSIC, PADDLE_LENGTH_4P, PADDLE_SPEED_4P, shuffleArray } from '../utils/constants';
 import i18next from '../utils/i18n';
 import {initializePongGame} from './Pong.ts';
+import TournamentModel from '../../../backend/models/Tournament.js';
 
 // Interfaz ajustada a lo que guardamos
 interface ParticipantInfo {
@@ -16,7 +17,40 @@ interface ParticipantInfo {
     // Añade más campos si los guardaste
 }
 
+interface TournamentMatchInfo {
+    id: number;
+    round: number;
+    match_status: 'pending' | 'playing' | 'finish';
+    player_one: ParticipantInfo | null;
+    player_two: ParticipantInfo | null;
+    player_one_points: number;
+    player_two_points: number;
+    next_match_id: number | null;
+}
+
 let pongElement;
+
+async function fetchTornamentMatch()
+{
+    try {
+        const tournamentId = localStorage.getItem('currentTournamentId');
+        if (!tournamentId) throw new Error('No tournament ID found');
+
+        const response = await authenticatedFetch(`/api/match/getall?tournament_id=${tournamentId}`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || i18next.t('Error cargando torneo'));
+        }
+        const matches: TournamentMatchInfo[] = await response.json();
+		matches.sort((a, b) => a.id - b.id);
+        console.log("Partidas del torneo cargadas:", matches);
+        return matches;
+	} catch (error) {
+		console.error("Error fetching tournament matches:", error);
+		alert((error as Error).message);
+		return [];
+	}
+}
 
 export async function renderTournamentMatch(appElement: HTMLElement): Promise<void> {
     if (!appElement) return;
@@ -65,7 +99,8 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
                     ${participants.map(p => `<li>${p.displayName} ${p.is_guest ? '(Invitado)' : ''} (ID: ${p.id})</li>`).join('')}
                 </ul>
             </div>
-
+			<div id="pong">
+			</div>
             <div id="bracket-container" class="w-full max-w-6xl text-center">
                 <p class="text-gray-400">(Visualización del bracket pendiente)</p>
                 </div>
@@ -73,8 +108,6 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
             <button id="back-to-start" class="mt-8 px-6 py-3 bg-gray-600 rounded hover:bg-gray-500">
                 ${i18next.t('return')} al Menú Principal
             </button>
-			<div id="pong">
-			</div>
 		</main>
 		<button id="homeButton" class="mt-8 px-8 py-4 text-lg rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-gray-700 text-white hover:bg-gray-600">${i18next.t('return')}</button>
 	  </div>
@@ -100,6 +133,28 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
     // 4. Implementar la lógica de juego real (posiblemente en otra vista o componente).
     // 5. Actualizar el estado del torneo y las partidas (polling o WebSockets).
 
+	let tournamentMatchs = await fetchTornamentMatch();
+
+	console.log(tournamentMatchs);
+
 	pongElement = document.getElementById('pong');
 	initializePongGame(pongElement);
+}
+
+async function  renderTournamentScores(appElement: HTMLElement, tournamentMatchs: TournamentMatchInfo[]): Promise<void> {
+	if (!appElement) {
+		console.error("App element no encontrado para renderizar puntuaciones del torneo.");
+		return;
+	}
+
+
+	appElement.innerHTML = `
+		<div class="puntuaciones-container">
+			<h3 class="text-xl mb-4">Puntuaciones del Torneo:</h3>
+			<ul class="list-disc list-inside space-y-1">
+				${tournamentMatchs.map(match => `<li>${match.player1.displayName} vs ${match.player2.displayName} - ${match.score}</li>`).join('')}
+			</ul>
+		</div>
+	`;
+	
 }

@@ -1,7 +1,7 @@
 import { navigate } from '../main';
 import { playTrack } from '../utils/musicPlayer';
 import { authenticatedFetch } from '../utils/auth';
-import i18next from '../utils/i18n'; // Asegúrate que la ruta a i18n es correcta
+import i18next from '../utils/i18n';
 
 let gameType: 'pong' | 'tictactoe' = 'pong';
 
@@ -19,9 +19,8 @@ interface User {
 
 let participants: (User | null)[] = [];
 let allFriends: User[] = [];
-let availableGuests: User[] = []; // Lista COMPLETA de guests de la BD
+let availableGuests: User[] = [];
 
-// --- Funciones fetchFriends y fetchGuests (sin cambios) ---
 async function fetchFriends(): Promise<User[]> {
 	try {
 		const response = await authenticatedFetch('/api/friends');
@@ -36,7 +35,6 @@ async function fetchFriends(): Promise<User[]> {
 
 async function fetchGuests(): Promise<User[]> {
 	try {
-		// Usar is_guest=1 como confirmaste
 		const response = await authenticatedFetch('/api/users?is_guest=1');
 		if (!response.ok) throw new Error(i18next.t('Error cargando invitados', { ns: 'translation', defaultValue: 'Error loading guests' }));
 		const guests: User[] = await response.json();
@@ -55,7 +53,7 @@ function renderParticipantBoxes(count: number, container: HTMLElement, currentUs
 	for (let i = 1; i < count; i++) {
 		initialParticipants.push(participants[i] || null);
 	}
-	participants = initialParticipants.slice(0, count); // Actualiza globalmente
+	participants = initialParticipants.slice(0, count);
 
 	for (let i = 0; i < count; i++) {
 		const participantBox = document.createElement('div');
@@ -107,13 +105,11 @@ function renderParticipantBoxes(count: number, container: HTMLElement, currentUs
 		participantBox.innerHTML = boxContent;
 		container.appendChild(participantBox);
 
-		// Adjuntar listeners
 		if (i > 0) {
 			participantBox.querySelectorAll(`.participant-type-radio`).forEach(radio => {
 				radio.addEventListener('change', handleParticipantTypeChange);
 			});
 			participantBox.querySelector('.participant-select-friend')?.addEventListener('change', handleFriendSelectionChange);
-			// Listener SOLO para el input de alias
 			participantBox.querySelector('.participant-input-guest-alias')?.addEventListener('input', handleGuestAliasChange);
 			participantBox.querySelector('.participant-input-guest-alias')?.addEventListener('change', handleGuestAliasChange); // Captura final
 		}
@@ -135,24 +131,19 @@ function handleParticipantTypeChange(event: Event) {
 
 		console.log(`Caja ${index}: Cambiado tipo a ${isGuest ? 'Invitado' : 'Amigo'}`);
 
-		// Ocultar/Mostrar secciones
 		document.getElementById(`friend-selector-${index}`)?.classList.toggle('hidden', isGuest);
 		document.getElementById(`guest-alias-input-${index}`)?.classList.toggle('hidden', !isGuest);
 
 		if (isGuest) {
-			// --- Lógica de Asignación Automática ---
-			// 1. Obtener IDs de guests ya asignados en *otras* cajas
 			const assignedGuestIds = new Set(
 				participants
 					.map((p, idx) => (p?.is_guest && idx !== index ? p.id : null))
 					.filter(id => id !== null && id >= 0) as number[]
 			);
 
-			// 2. Encontrar el primer guest disponible que no esté ya asignado
 			const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
 
 			if (nextAvailableGuest) {
-				// 3. Asignar este guest al slot actual
 				const aliasInput = box.querySelector('.participant-input-guest-alias') as HTMLInputElement;
 				const currentAlias = aliasInput.value.trim() || `${i18next.t('Invitado')} ${index + 1}`; // Mantener alias si ya había
 				participants[index] = {
@@ -178,9 +169,7 @@ function handleParticipantTypeChange(event: Event) {
 			(box.querySelector('.participant-select-friend') as HTMLSelectElement).value = "";
 
 		} else { // Cambiando a Amigo
-			// Limpiar alias si existía
 			(box.querySelector('.participant-input-guest-alias') as HTMLInputElement).value = "";
-			// Restaurar amigo si estaba seleccionado o poner null
 			const friendSelect = box.querySelector('.participant-select-friend') as HTMLSelectElement;
 			const selectedFriendId = friendSelect ? parseInt(friendSelect.value) : NaN;
 			if (!isNaN(selectedFriendId) && selectedFriendId > 0) {
@@ -217,10 +206,6 @@ function handleFriendSelectionChange(event: Event) {
 			participants[index] = null;
 		}
 
-		// Re-renderizar podría ser necesario si la selección afecta la disponibilidad (aunque aquí no directamente)
-		// Optamos por no re-renderizar para mejor UX al seleccionar amigos.
-		// renderParticipantBoxes(participants.length, participantsContainer, currentUser);
-
 		console.log("Array completo tras selección amigo:", JSON.parse(JSON.stringify(participants)));
 
 
@@ -229,7 +214,6 @@ function handleFriendSelectionChange(event: Event) {
 	}
 }
 
-// Eliminamos handleGuestSelectionChange ya que no hay <select>
 
 function handleGuestAliasChange(event: Event) {
 	try {
@@ -238,11 +222,9 @@ function handleGuestAliasChange(event: Event) {
 		if (index <= 0 || index >= participants.length) return;
 		const alias = inputElement.value.trim();
 
-		// Actualizar alias si hay un participante guest ASIGNADO en este slot
-		if (participants[index] && participants[index]?.is_guest) { // Usamos is_guest porque el objeto es el real de la BD
+		if (participants[index] && participants[index]?.is_guest) {
 			participants[index]!.guestAlias = alias || `${i18next.t('Invitado')} ${index + 1}`; // Usar alias o default
 			console.log(`Caja ${index}: Alias para guest ID ${participants[index]?.id} actualizado a "${participants[index]!.guestAlias}"`);
-			// NO re-renderizar para mantener foco
 		} else {
 			console.log(`Caja ${index}: Intento de actualizar alias, pero no hay guest asignado.`);
 		}
@@ -252,9 +234,7 @@ function handleGuestAliasChange(event: Event) {
 }
 
 
-// --- Función principal renderTournament (sin cambios significativos) ---
 export async function renderTournament(appElement: HTMLElement): Promise<void> {
-	// ... (igual que antes: currentUser, carga paralela de friends y guests) ...
 	if (!appElement) return;
 
 	const currentUser: User | null = JSON.parse(localStorage.getItem('user') || 'null');
@@ -347,23 +327,17 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
 
 	participantCountSelect.addEventListener('change', () => {
 		const count = parseInt(participantCountSelect.value);
-		// Ajustar tamaño array ANTES de renderizar
 		while (participants.length < count) participants.push(null);
 		if (participants.length > count) participants.length = count;
-		// Llamar a renderizar DESPUÉS de ajustar el array
 		renderParticipantBoxes(count, participantsContainer, currentUser);
 	});
 
-	// Render inicial
 	renderParticipantBoxes(parseInt(participantCountSelect.value), participantsContainer, currentUser);
 
 	startTournamentButton?.addEventListener('click', handleStartTournament);
 }
 
-// --- Handler iniciar torneo (ajustado para usar IDs reales de guests) ---
-// --- Handler iniciar torneo (modificado al final) ---
 async function handleStartTournament() {
-	// ... (inicio de la función igual que antes: obtener name, selectedCount, validaciones, etc.)
 	const tournamentNameInput = document.getElementById('tournament-name') as HTMLInputElement;
 	const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
 	const name = tournamentNameInput.value.trim() || `${i18next.t('Torneo Rápido')}`;
@@ -385,7 +359,6 @@ async function handleStartTournament() {
 			guestAliasMap[participant.id] = participant.guestAlias || participant.username;
 		}
 	}
-	// ... (Validaciones de duplicados y conteo igual que antes) ...
 	if (new Set(finalParticipantIds).size !== finalParticipantIds.length) {
 		alert(`${i18next.t('No puedes añadir al mismo participante (amigo o invitado) varias veces.')}`);
 		return;
@@ -430,10 +403,6 @@ async function handleStartTournament() {
 
 		console.log("Torneo creado:", result);
 
-		// --- INICIO: Cambios para nueva página ---
-		// Guardar la información necesaria para la siguiente pantalla
-		// Es crucial que el backend devuelva la lista final de participantes
-		// con sus IDs reales (incluyendo los guests asignados) y sus usernames originales.
 		const tournamentId = result.tournament?.id; // Aún necesitamos el ID del torneo creado
 
 		if (!tournamentId) {
@@ -442,33 +411,26 @@ async function handleStartTournament() {
 			return;
 		}
 
-		// Construir la lista de participantes para la siguiente página
-		// USANDO los datos que ya tenemos en el frontend
+
 		const participantsForNextPage = finalParticipantIds.map(id => {
-			// Buscar el participante original en nuestro array 'participants' local
-			// Esto es crucial para obtener el username REAL y el ALIAS si era guest
 			const originalParticipant = participants.find(p => p?.id === id);
 
-			let displayName = originalParticipant?.username || `Usuario ${id}`; // Default
-			let realUsername = originalParticipant?.username || `Usuario ${id}`; // Default
+			let displayName = originalParticipant?.username || `Usuario ${id}`;
+			let realUsername = originalParticipant?.username || `Usuario ${id}`;
 			let isGuest = originalParticipant?.is_guest || false; // Default a no ser guest
 
-			// Si era un guest, usar el alias guardado o su username real si no hay alias
 			if (isGuest && guestAliasMap[id]) {
 				displayName = guestAliasMap[id];
 			} else if (isGuest) {
-				displayName = originalParticipant?.username || `Guest ${id}`; // Fallback al username real del guest
+				displayName = originalParticipant?.username || `Guest ${id}`;
 			}
 
 
 			return {
 				id: id,
-				username: realUsername, // Guardamos el username real (guestX)
-				displayName: displayName, // Guardamos el alias o username para mostrar
+				username: realUsername,
+				displayName: displayName,
 				is_guest: isGuest
-				// Puedes añadir más campos aquí si los tienes en 'originalParticipant'
-				// elo: originalParticipant?.elo,
-				// avatar_url: originalParticipant?.avatar_url
 			};
 		});
 
@@ -477,6 +439,7 @@ async function handleStartTournament() {
 		localStorage.setItem('currentTournamentId', tournamentId.toString());
 		localStorage.setItem('currentTournamentParticipants', JSON.stringify(participantsForNextPage)); // Guardar nuestra lista construida
 		localStorage.setItem('currentTournamentGame', gameType);
+		localStorage.setItem('gameMode', 'TWO_PLAYERS');
 
 		console.log("Datos guardados para la página de torneo:", {
 			tournamentId,
@@ -487,12 +450,10 @@ async function handleStartTournament() {
 
 		alert(`¡${i18next.t('Torneo')} "${name}" ${i18next.t('creado con éxito')}!`);
 
-		// Limpiar estado local de ESTA página
 		participants = [];
 		allFriends = [];
 		availableGuests = [];
 
-		// Navegar a la nueva página del torneo
 		navigate(`/tournament-match/${tournamentId}`);
 	} catch (error) {
 		console.error("Error al iniciar el torneo:", error);
