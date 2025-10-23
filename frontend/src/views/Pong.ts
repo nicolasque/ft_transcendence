@@ -61,13 +61,30 @@ function checkObstacleCollision(ball: BallObject, obstacle: Obstacle, ballRadius
     const distanceSquared = (distX * distX) + (distY * distY);
 
     if (distanceSquared < (ballRadius * ballRadius)) {
-        const overlapX = ballRadius - Math.abs(distX);
-        const overlapY = ballRadius - Math.abs(distY);
+        // Determinar desde qué lado viene la bola usando su dirección
+        const fromLeft = ball.x < obstacle.x;
+        const fromRight = ball.x > obstacle.x + obstacle.width;
+        const fromTop = ball.y < obstacle.y;
+        const fromBottom = ball.y > obstacle.y + obstacle.height;
 
-        if (overlapX > overlapY) {
-             return 'vertical';
+        // Si viene claramente desde un lado horizontal
+        if (fromLeft || fromRight) {
+            return 'horizontal';
+        }
+        // Si viene claramente desde un lado vertical
+        if (fromTop || fromBottom) {
+            return 'vertical';
+        }
+
+        // Para casos ambiguos (esquinas), usar la dirección de la velocidad
+        const absDistX = Math.abs(distX);
+        const absDistY = Math.abs(distY);
+        
+        // Si la distancia horizontal es mayor, es colisión horizontal
+        if (absDistX > absDistY) {
+            return 'horizontal';
         } else {
-             return 'horizontal';
+            return 'vertical';
         }
     }
     return null;
@@ -161,7 +178,7 @@ export function initializePongGame(
 			const distanceX = ball.x - closestX;
 			const distanceY = ball.y - closestY;
 			const distanceSquared = (distanceX * distanceX) + (distanceY * distanceY);
-			return distanceSquared < (BALL_RADIUS * BALL_RADIUS);
+			return distanceSquared < (currentBallRadius * currentBallRadius);
 		}
 
 		function resetBall() {
@@ -194,29 +211,36 @@ export function initializePongGame(
 		function resetGame() {
 			gameState = 'MENU';
 
-	        if (selectedMap === 'custom') {
-             currentBallSpeed = parseInt(localStorage.getItem('custom_ballSpeed') || `${INITIAL_BALL_SPEED}`);
-             currentPaddleSpeed = parseInt(localStorage.getItem('custom_paddleSpeed') || `${PADDLE_SPEED_CLASSIC}`);
-             currentBallRadius = parseInt(localStorage.getItem('custom_ballSize') || `${BALL_RADIUS}`);
-             currentPaddleLength = parseInt(localStorage.getItem('custom_paddleLength') || `${PADDLE_LENGTH_CLASSIC}`);
-             currentMapConfig = PONG_MAPS['classic'];
-        } else {
-            currentMapConfig = PONG_MAPS[selectedMap] || PONG_MAPS.classic;
-            if (gameMode === 'FOUR_PLAYERS') {
-                 currentBallSpeed = INITIAL_BALL_SPEED;
-                 currentPaddleSpeed = PADDLE_SPEED_4P;
-                 currentBallRadius = BALL_RADIUS;
-                 currentPaddleLength = PADDLE_LENGTH_4P;
-            } else {
-                 currentBallSpeed = INITIAL_BALL_SPEED;
-                 currentPaddleSpeed = PADDLE_SPEED_CLASSIC;
-                 currentBallRadius = BALL_RADIUS;
-                 currentPaddleLength = PADDLE_LENGTH_CLASSIC;
-	            }
-        }
-        console.log("Mapa cargado:", selectedMap, currentMapConfig);
+			// Para torneos, forzar modo clásico
+			if (isTournamentMatch) {
+				currentMapConfig = PONG_MAPS['classic'];
+				currentBallSpeed = INITIAL_BALL_SPEED;
+				currentPaddleSpeed = PADDLE_SPEED_CLASSIC;
+				currentBallRadius = BALL_RADIUS;
+				currentPaddleLength = PADDLE_LENGTH_CLASSIC;
+			} else if (selectedMap === 'custom') {
+				currentBallSpeed = parseInt(localStorage.getItem('custom_ballSpeed') || `${INITIAL_BALL_SPEED}`);
+				currentPaddleSpeed = parseInt(localStorage.getItem('custom_paddleSpeed') || `${PADDLE_SPEED_CLASSIC}`);
+				currentBallRadius = parseInt(localStorage.getItem('custom_ballSize') || `${BALL_RADIUS}`);
+				currentPaddleLength = parseInt(localStorage.getItem('custom_paddleLength') || `${PADDLE_LENGTH_CLASSIC}`);
+				currentMapConfig = PONG_MAPS['classic'];
+			} else {
+				currentMapConfig = PONG_MAPS[selectedMap] || PONG_MAPS.classic;
+				if (gameMode === 'FOUR_PLAYERS') {
+					currentBallSpeed = INITIAL_BALL_SPEED;
+					currentPaddleSpeed = PADDLE_SPEED_4P;
+					currentBallRadius = BALL_RADIUS;
+					currentPaddleLength = PADDLE_LENGTH_4P;
+				} else {
+					currentBallSpeed = INITIAL_BALL_SPEED;
+					currentPaddleSpeed = PADDLE_SPEED_CLASSIC;
+					currentBallRadius = BALL_RADIUS;
+					currentPaddleLength = PADDLE_LENGTH_CLASSIC;
+				}
+			}
+			console.log("Mapa cargado:", selectedMap, currentMapConfig);
 
-		if (gameMode === 'FOUR_PLAYERS') {
+			if (gameMode === 'FOUR_PLAYERS') {
 				canvas.width = 1000; canvas.height = 1000;
 				canvas.style.aspectRatio = '1 / 1';
 				score = { p1: 3, p2: 3, p3: 3, p4: 3 };
@@ -274,7 +298,7 @@ export function initializePongGame(
 					if (now - aiLastUpdateTime >= updateIntervalMs) {
 						aiLastUpdateTime = now;
 						if (ball.dx > 0) {
-							const predictedY = predictBallTrajectory({ ...ball }, player2.x, canvas.height);
+							const predictedY = predictBallTrajectory({ ...ball }, player2.x, canvas.height, currentMapConfig, currentBallRadius);
 							const paddleCenterOffset = player2.height / 2;
 							aiTargetY = predictedY - paddleCenterOffset;
 						} else {
@@ -307,14 +331,72 @@ export function initializePongGame(
 				player4.x = Math.max(0, Math.min(player4.x, canvas.width - player4.width));
 			}
 
+			// Mover la bola
+			const prevBallX = ball.x;
+			const prevBallY = ball.y;
 			ball.x += ball.dx;
 			ball.y += ball.dy;
 
-			if (checkCollision(ball, player1)) handlePaddleBounce(player1, playerVelocities.p1, 'vertical');
-			if (checkCollision(ball, player2)) handlePaddleBounce(player2, playerVelocities.p2, 'vertical');
-			if (gameMode === 'FOUR_PLAYERS') {
-				if (checkCollision(ball, player3)) handlePaddleBounce(player3, playerVelocities.p3, 'horizontal');
-				if (checkCollision(ball, player4)) handlePaddleBounce(player4, playerVelocities.p4, 'horizontal');
+			// Manejar colisiones con obstáculos
+			let obstacleCollisionHandled = false;
+			if (currentMapConfig && currentMapConfig.obstacles) {
+				for (const obstacle of currentMapConfig.obstacles) {
+					const collisionType = checkObstacleCollision(ball, obstacle, currentBallRadius);
+					if (collisionType) {
+						if (collisionType === 'horizontal') {
+							ball.dx *= -1;
+							// Posicionar correctamente según la dirección del rebote
+							if (ball.dx > 0) {
+								ball.x = obstacle.x + obstacle.width + currentBallRadius;
+							} else {
+								ball.x = obstacle.x - currentBallRadius;
+							}
+						} else {
+							ball.dy *= -1;
+							// Posicionar correctamente según la dirección del rebote
+							if (ball.dy > 0) {
+								ball.y = obstacle.y + obstacle.height + currentBallRadius;
+							} else {
+								ball.y = obstacle.y - currentBallRadius;
+							}
+						}
+						obstacleCollisionHandled = true;
+						break;
+					}
+				}
+			}
+
+			// Manejar colisiones con palas solo si no hubo colisión con obstáculo
+			if (!obstacleCollisionHandled) {
+				let bounced = false;
+				if (checkCollision(ball, player1) && ball.dx < 0) { 
+					handlePaddleBounce(player1, playerVelocities.p1, 'vertical'); 
+					bounced = true; 
+				}
+				if (!bounced && checkCollision(ball, player2) && ball.dx > 0) { 
+					handlePaddleBounce(player2, playerVelocities.p2, 'vertical'); 
+					bounced = true; 
+				}
+				if (gameMode === 'FOUR_PLAYERS') {
+					if (!bounced && checkCollision(ball, player3) && ball.dy < 0) { 
+						handlePaddleBounce(player3, playerVelocities.p3, 'horizontal'); 
+						bounced = true; 
+					}
+					if (!bounced && checkCollision(ball, player4) && ball.dy > 0) { 
+						handlePaddleBounce(player4, playerVelocities.p4, 'horizontal'); 
+					}
+				}
+			}
+
+			// Rebotes en paredes superior e inferior (solo en modo 1v1)
+			if (gameMode !== 'FOUR_PLAYERS') {
+				if (ball.y - currentBallRadius < 0 && ball.dy < 0) {
+					ball.dy *= -1;
+					ball.y = currentBallRadius;
+				} else if (ball.y + currentBallRadius > canvas.height && ball.dy > 0) {
+					ball.dy *= -1;
+					ball.y = canvas.height - currentBallRadius;
+				}
 			}
 
 			handleScoring();
@@ -394,15 +476,20 @@ export function initializePongGame(
 			score[playerKey] = Math.max(0, (score[playerKey] || 0) - 1);
 
 			const gameObjectKey = `player${playerNumber}` as keyof GameObjects;
-			if (score[playerKey] <= 0) {
-				gameObjects[gameObjectKey].isAlive = false;
-	          console.log(`Player ${playerNumber} eliminado!`);
-		}
+			const paddle = gameObjects[gameObjectKey];
+			if (score[playerKey] <= 0 && 'isAlive' in paddle) {
+				paddle.isAlive = false;
+				console.log(`Player ${playerNumber} eliminado!`);
+			}
 
 			const alivePlayers = [gameObjects.player1, gameObjects.player2, gameObjects.player3, gameObjects.player4].filter(p => p.isAlive).length;
 
 			if (gameMode === 'FOUR_PLAYERS' && alivePlayers <= 1) {
-				const winnerKey = Object.keys(score).find(k => gameObjects[`player${k.replace('p', '')}` as keyof GameObjects].isAlive);
+				const winnerKey = Object.keys(score).find(k => {
+					const playerKey = `player${k.replace('p', '')}` as keyof GameObjects;
+					const obj = gameObjects[playerKey];
+					return 'isAlive' in obj && obj.isAlive;
+				});
 				endGame(winnerKey ? parseInt(winnerKey.replace('p', '')) : 0);
 			} else {
 				resetBall();
@@ -410,7 +497,7 @@ export function initializePongGame(
 			}
 		}
 
-		function drawTextWithSizing(text: string, x: number, y: number, align: 'left' | 'right' | 'center', maxWidth: number, color: string) {
+		function drawTextWithSizing(text: string, x: number, y: number, align: 'left' | 'right' | 'center', maxWidth: number, color?: string) {
 			const defaultFontSize = 32;
 			const minFontSize = 16;
 			let fontSize = defaultFontSize;
@@ -425,16 +512,16 @@ export function initializePongGame(
 
 			let finalText = text;
 			if (measuredWidth > maxWidth && text.length > 3) {
-					while (context.measureText(finalText + '...').width > maxWidth && finalText.length > 0) {
+				while (context.measureText(finalText + '...').width > maxWidth && finalText.length > 0) {
 					finalText = text.substring(0, finalText.length - 1);
-					}
+				}
 				finalText += '...';
 			} else if (measuredWidth > maxWidth) {
-			finalText = text.substring(0, 1) + '..';
-		}
+				finalText = text.substring(0, 1) + '..';
+			}
 
 			context.textAlign = align;
-			context.fillStyle = color;
+			if (color) context.fillStyle = color;
 			context.fillText(finalText, x, y);
 		}
 
@@ -527,7 +614,7 @@ export function initializePongGame(
 			if (gameState === 'PLAYING' || gameState === 'SCORED') {
 				context.fillStyle = 'white';
 				context.beginPath();
-				context.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+				context.arc(ball.x, ball.y, currentBallRadius, 0, Math.PI * 2);
 				context.fill();
 			}
 		}
@@ -561,19 +648,19 @@ export function initializePongGame(
 				navigate('/login');
 				return;
 			}
-			const palyer1 = user.id;
+			const player_one_id = user.id;
 
-			let palyer2: number | null = null;
+			let player_two_id: number | null = null;
 			let match_type: string = 'local';
 			const opponentIdStr = localStorage.getItem('opponentId');
 
 			if (gameMode === 'ONE_PLAYER') {
 				match_type = 'ia';
-	          console.log(`Iniciando partida 1vAI`);
-		} else if (gameMode === 'TWO_PLAYERS' && opponentIdStr) {
-				palyer2 = parseInt(opponentIdStr, 10);
+				console.log(`Iniciando partida 1vAI`);
+			} else if (gameMode === 'TWO_PLAYERS' && opponentIdStr) {
+				player_two_id = parseInt(opponentIdStr, 10);
 				match_type = 'friends';
-				console.log(`Iniciando partida 1v1 contra amigo ID: ${palyer2}`);
+				console.log(`Iniciando partida 1v1 contra amigo ID: ${player_two_id}`);
 			} else if (gameMode === 'TWO_PLAYERS' && !opponentIdStr) {
 				match_type = 'local';
 				console.log(`Iniciando partida local 2P (vs guess)`);
@@ -581,8 +668,8 @@ export function initializePongGame(
 
 			if (gameMode !== 'FOUR_PLAYERS') {
 				const matchData = {
-					palyer1: palyer1,
-					...(palyer2 !== null && { palyer2: palyer2 }),
+					player_one_id: player_one_id,
+					...(player_two_id !== null && { player_two_id: player_two_id }),
 					game: 'pong',
 					match_type: match_type,
 					match_status: 'playing',
@@ -597,8 +684,8 @@ export function initializePongGame(
 
 					if (!response.ok) {
 						const errorData = await response.json();
-		                const errorMessage = errorData.error?.message || errorData.message || 'Failed to create match on the server.';
-				throw new Error(errorMessage);
+						const errorMessage = errorData.error?.message || errorData.message || 'Failed to create match on the server.';
+						throw new Error(errorMessage);
 					}
 
 					const result = await response.json();
@@ -611,7 +698,7 @@ export function initializePongGame(
 				} catch (error) {
 					console.error("Error starting game:", error);
 					alert("Error al iniciar la partida: " + (error as Error).message);
-			  resetGame();
+					resetGame();
 					return;
 				}
 			} else {
@@ -660,7 +747,7 @@ export function initializePongGame(
 			winnerMessage.classList.remove('hidden');
 			gameOverlay.classList.remove('hidden');
 
-			if (matchId && isTournamentMatch || gameMode !== 'FOUR_PLAYERS') {
+			if (matchId && (isTournamentMatch || gameMode !== 'FOUR_PLAYERS')) {
 				const finalData = {
 					match_status: 'finish',
 					player_one_points: score.p1,
