@@ -131,6 +131,9 @@
 		"history": "/assets/en/history.png",
 		"send": "/assets/en/send.png",
 		"block": "/assets/en/block.png",
-		"return": "/assets/en/return.png"
+		"return": "/assets/en/return.png",
+		"classic": "/assets/en/classic.png",
+		"obstacles": "/assets/en/obstacle.png",
+		"custom": "/assets/en/custom.png"
 	}
 }

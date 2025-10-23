@@ -43,9 +43,15 @@ export function renderCharQP(appElement: HTMLElement): void {
 						</button>
 					</div>
 					<div id="map-selection" class="flex flex-wrap justify-center items-center gap-4 md:gap-6 mt-4">
-						<button data-map="classic" class="map-btn px-4 py-2 bg-cyan-600 rounded opacity-100 border-b-4 border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-300">${i18next.t('classic')}</button>
-						<button data-map="obstacles_center" class="map-btn px-4 py-2 bg-cyan-600 rounded opacity-50 focus:outline-none focus:ring-2 focus:ring-cyan-300">${i18next.t('obstacles')}</button>
-						<button data-map="custom" class="map-btn px-4 py-2 bg-cyan-600 rounded opacity-50 focus:outline-none focus:ring-2 focus:ring-cyan-300">${i18next.t('custom')}</button>
+						<button data-map="classic" class="map-btn relative h-8 w-32 md:h-10 md:w-40 cursor-pointer transition-transform transform hover:scale-110 opacity-100 border-b-4 border-cyan-400 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+							<img src="${i18next.t('img.classic')}" alt="${i18next.t('classic')}" class="absolute inset-0 w-full h-full object-contain">
+						</button>
+						<button data-map="obstacles_center" class="map-btn relative h-8 w-32 md:h-10 md:w-40 cursor-pointer transition-transform transform hover:scale-110 opacity-50 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+							<img src="${i18next.t('img.obstacles')}" alt="${i18next.t('obstacles')}" class="absolute inset-0 w-full h-full object-contain">
+						</button>
+						<button data-map="custom" class="map-btn relative h-8 w-32 md:h-10 md:w-40 cursor-pointer transition-transform transform hover:scale-110 opacity-50 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+							<img src="${i18next.t('img.custom')}" alt="${i18next.t('custom')}" class="absolute inset-0 w-full h-full object-contain">
+						</button>
 					</div>
 				</div>
 
