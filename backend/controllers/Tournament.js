@@ -29,41 +29,41 @@ class TournamentController {
 
 
 	createBracket = async (tournament, participants) => {
-        const numPlayers = participants.length;
-        const totalRounds = Math.log2(numPlayers);
-        let previousRoundMatches = [];
+		const numPlayers = participants.length;
+		const totalRounds = Math.log2(numPlayers);
+		let previousRoundMatches = [];
 
-        // Crea las partidas desde la primera ronda hacia la final
-        for (let round = 1; round <= totalRounds; round++) {
-            const numMatchesInRound = numPlayers / (2 ** round);
-            const currentRoundMatches = [];
+		// Crea las partidas desde la primera ronda hacia la final
+		for (let round = 1; round <= totalRounds; round++) {
+			const numMatchesInRound = numPlayers / (2 ** round);
+			const currentRoundMatches = [];
 
-            for (let i = 0; i < numMatchesInRound; i++) {
-                const newMatch = await MatchModel.create({
-                    tournament_id: tournament.id,
-                    round: round,
-                    game: tournament.game,
-                    match_status: 'pending',
-                    // Si es la ronda 1, asigna los jugadores
-                    player_one_id: round === 1 ? participants[i * 2] : null,
-                    player_two_id: round === 1 ? participants[i * 2 + 1] : null,
-                });
-                currentRoundMatches.push(newMatch);
-            }
+			for (let i = 0; i < numMatchesInRound; i++) {
+				const newMatch = await MatchModel.create({
+					tournament_id: tournament.id,
+					round: round,
+					game: tournament.game,
+					match_status: 'pending',
+					// Si es la ronda 1, asigna los jugadores
+					palyer1: round === 1 ? participants[i * 2] : null,
+					palyer2: round === 1 ? participants[i * 2 + 1] : null,
+				});
+				currentRoundMatches.push(newMatch);
+			}
 
-            // Enlaza las partidas de la ronda anterior a la actual
-            if (previousRoundMatches.length > 0) {
-                for (let i = 0; i < previousRoundMatches.length; i++) {
-                    // El ganador de la partida 'i' de la ronda anterior
-                    // va a la partida 'floor(i/2)' de la ronda actual.
-                    await previousRoundMatches[i].update({
-                        next_match_id: currentRoundMatches[Math.floor(i / 2)].id
-                    });
-                }
-            }
-            previousRoundMatches = currentRoundMatches;
-        }
-    }
+			// Enlaza las partidas de la ronda anterior a la actual
+			if (previousRoundMatches.length > 0) {
+				for (let i = 0; i < previousRoundMatches.length; i++) {
+					// El ganador de la partida 'i' de la ronda anterior
+					// va a la partida 'floor(i/2)' de la ronda actual.
+					await previousRoundMatches[i].update({
+						next_match_id: currentRoundMatches[Math.floor(i / 2)].id
+					});
+				}
+			}
+			previousRoundMatches = currentRoundMatches;
+		}
+	}
 
 
 	finishTournament = async (req, res) => {
@@ -84,7 +84,7 @@ class TournamentController {
 			}
 
 			// 2. Determinar el ganador de la partida final
-			const winnerId = finalMatch.player_one_points > finalMatch.player_two_points ? finalMatch.player_one_id : finalMatch.player_two_id;
+			const winnerId = finalMatch.player_one_points > finalMatch.player_two_points ? finalMatch.palyer1 : finalMatch.palyer2;
 
 			// 3. Actualizar el torneo con el ganador y el estado 'finished'
 			await TournamentModel.update(

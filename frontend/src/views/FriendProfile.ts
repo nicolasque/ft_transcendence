@@ -4,83 +4,83 @@ import { authenticatedFetch } from '../utils/auth';
 import i18next from '../utils/i18n';
 
 interface User {
-    id: number;
-    username: string;
-    email: string;
-    fullname: string;
-    elo: number;
-    avatar_url?: string;
+	id: number;
+	username: string;
+	email: string;
+	fullname: string;
+	elo: number;
+	avatar_url?: string;
 }
 
 interface Match {
-    id: number;
-    player_one_id: number;
-    player_two_id: number;
-    player_one_points: number;
-    player_two_points: number;
-    match_status: 'pending' | 'playing' | 'finish';
-    createdAt: string;
-    game: 'pong' | 'tictactoe';
-    player_one: { id: number, username: string };
-    player_two: { id: number, username: string };
+	id: number;
+	palyer1: number;
+	palyer2: number;
+	player_one_points: number;
+	player_two_points: number;
+	match_status: 'pending' | 'playing' | 'finish';
+	createdAt: string;
+	game: 'pong' | 'tictactoe';
+	player_one: { id: number, username: string };
+	player_two: { id: number, username: string };
 }
 
 interface Stats {
-    played: number;
-    victories: number;
-    defeats: number;
-    draws: number;
+	played: number;
+	victories: number;
+	defeats: number;
+	draws: number;
 }
 
 export async function renderFriendProfile(appElement: HTMLElement): Promise<void> {
-    if (!appElement) {
-        return;
-    }
+	if (!appElement) {
+		return;
+	}
 
-    const pathParts = window.location.pathname.split('/');
-    const friendId = pathParts[pathParts.length - 1];
+	const pathParts = window.location.pathname.split('/');
+	const friendId = pathParts[pathParts.length - 1];
 
-    const userIdNum = parseInt(friendId);
-    if (isNaN(userIdNum)) {
-        console.error("Invalid friend ID in URL");
-        navigate('/friends');
-        return;
-    }
+	const userIdNum = parseInt(friendId);
+	if (isNaN(userIdNum)) {
+		console.error("Invalid friend ID in URL");
+		navigate('/friends');
+		return;
+	}
 
-    try {
-        const userResponse = await authenticatedFetch(`/api/users/${userIdNum}`);
-        if (!userResponse.ok) throw new Error('Failed to fetch user data');
-        const user: User = await userResponse.json();
+	try {
+		const userResponse = await authenticatedFetch(`/api/users/${userIdNum}`);
+		if (!userResponse.ok) throw new Error('Failed to fetch user data');
+		const user: User = await userResponse.json();
 
-        const matchesResponse = await authenticatedFetch(`/api/match/getall?user_id=${user.id}`);
-        if (!matchesResponse.ok) throw new Error('Failed to fetch match history');
-        const allMatches: Match[] = await matchesResponse.json();
+		const matchesResponse = await authenticatedFetch(`/api/match/getall?user_id=${user.id}`);
+		if (!matchesResponse.ok) throw new Error('Failed to fetch match history');
+		const allMatches: Match[] = await matchesResponse.json();
 
-        const history = allMatches.filter(match => match.match_status === 'finish');
+		const history = allMatches.filter(match => match.match_status === 'finish');
 
-        const stats: Stats = {
-            played: history.length,
-            victories: 0,
-            defeats: 0,
-            draws: 0
-        };
+		const stats: Stats = {
+			played: history.length,
+			victories: 0,
+			defeats: 0,
+			draws: 0
+		};
 
-        history.forEach(match => {
-            if (match.player_one_points === match.player_two_points) {
-                stats.draws++;
-            } else {
-                const isPlayerOne = match.player_one_id === user.id;
-                const won = isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
-                if (won) {
-                    stats.victories++;
-                } else {
-                    stats.defeats++;
-                }
-            }
-        });
-        stats.defeats = stats.played - stats.victories - stats.draws;
+		history.forEach(match => {
+			if (match.player_one_points === match.player_two_points) {
+				stats.draws++;
+			} else {
+				const isPlayerOne = match.palyer1 === user.id;
+				const won = isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
+				if (won) {
+					stats.victories++;
+				} else {
+					stats.defeats++;
+				}
+			}
+		});
+		stats.defeats = stats.played - stats.victories - stats.draws;
 
-        appElement.innerHTML = `
+		appElement.innerHTML = `
         <div class="h-screen flex flex-col items-center justify-start p-4 text-white overflow-y-auto">
             <div class="w-full flex justify-center mt-10 md:mt-20 mb-8">
                 <button id="homeButton" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
@@ -131,32 +131,32 @@ export async function renderFriendProfile(appElement: HTMLElement): Promise<void
                         <h3 class="text-xl md:text-2xl font-bold mb-4">${i18next.t('matchHistory')}</h3>
                         <div id="history-container" class="space-y-3 max-h-80 lg:max-h-none overflow-y-auto pr-2 lg:flex-grow">
                             ${history.length > 0 ? history.map(match => {
-                                const isPlayerOne = match.player_one_id === user.id;
-                                let result = '';
-                                let resultClass = '';
+			const isPlayerOne = match.palyer1 === user.id;
+			let result = '';
+			let resultClass = '';
 
-                                if (match.player_one_points === match.player_two_points) {
-                                    result = i18next.t('drawResult');
-                                    resultClass = 'text-yellow-400';
-                                } else {
-                                    const didWin = isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
-                                    result = didWin ? i18next.t('victory') : i18next.t('defeat');
-                                    resultClass = didWin ? 'text-green-400' : 'text-red-400';
-                                }
+			if (match.player_one_points === match.player_two_points) {
+				result = i18next.t('drawResult');
+				resultClass = 'text-yellow-400';
+			} else {
+				const didWin = isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
+				result = didWin ? i18next.t('victory') : i18next.t('defeat');
+				resultClass = didWin ? 'text-green-400' : 'text-red-400';
+			}
 
-                                const score = isPlayerOne ? `${match.player_one_points}-${match.player_two_points}` : `${match.player_two_points}-${match.player_one_points}`;
-                                const opponent = isPlayerOne ? match.player_two : match.player_one;
-                                const opponentUsername = opponent ? opponent.username : 'Desconocido';
-                                const gameName = match.game === 'tictactoe' ? 'TicTacToe' : 'Pong';
+			const score = isPlayerOne ? `${match.player_one_points}-${match.player_two_points}` : `${match.player_two_points}-${match.player_one_points}`;
+			const opponent = isPlayerOne ? match.player_two : match.player_one;
+			const opponentUsername = opponent ? opponent.username : 'Desconocido';
+			const gameName = match.game === 'tictactoe' ? 'TicTacToe' : 'Pong';
 
-                                return `
+			return `
                                 <div class="flex flex-wrap justify-between items-center bg-gray-700 p-3 rounded text-sm md:text-base">
                                     <p class="font-bold text-cyan-300">${gameName}</p>
                                     <p>${i18next.t('vs')} <span class="font-bold">${opponentUsername}</span></p>
                                     <p class="${resultClass} font-bold">${result}</p>
                                     <p class="font-mono bg-gray-900 px-2 py-1 rounded">${score}</p>
                                 </div>`;
-                            }).join('') : `<p class="text-center text-gray-400">${i18next.t('noMatchHistory')}</p>`}
+		}).join('') : `<p class="text-center text-gray-400">${i18next.t('noMatchHistory')}</p>`}
                         </div>
                     </div>
                 </div>
@@ -167,13 +167,13 @@ export async function renderFriendProfile(appElement: HTMLElement): Promise<void
         </div>
         `;
 
-        playTrack('/assets/Techno_Syndrome.mp3');
-        document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
-        document.getElementById('backToFriends')?.addEventListener('click', () => navigate('/friends'));
+		playTrack('/assets/Techno_Syndrome.mp3');
+		document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+		document.getElementById('backToFriends')?.addEventListener('click', () => navigate('/friends'));
 
-    } catch (error) {
-        console.error("Failed to load friend profile:", (error as Error).message);
-        appElement.innerHTML = `<div class="text-white text-center p-8"><h1>${i18next.t('errorLoadingUserDetails', { error: (error as Error).message })}</h1><button id="backToFriendsFallback" class="mt-4 bg-cyan-600 px-4 py-2 rounded">${i18next.t('return')}</button></div>`;
-        document.getElementById('backToFriendsFallback')?.addEventListener('click', () => navigate('/friends'));
-    }
+	} catch (error) {
+		console.error("Failed to load friend profile:", (error as Error).message);
+		appElement.innerHTML = `<div class="text-white text-center p-8"><h1>${i18next.t('errorLoadingUserDetails', { error: (error as Error).message })}</h1><button id="backToFriendsFallback" class="mt-4 bg-cyan-600 px-4 py-2 rounded">${i18next.t('return')}</button></div>`;
+		document.getElementById('backToFriendsFallback')?.addEventListener('click', () => navigate('/friends'));
+	}
 }

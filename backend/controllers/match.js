@@ -26,31 +26,31 @@ class MatchControler {
 				if (!iaUser) {
 					return res.status(500).send({ error: 'El usuario IA no se encuentra en la base de datos.' });
 				}
-				matchData.player_two_id = iaUser.id;
-                console.log('Match vs IA creado.');
+				matchData.palyer2 = iaUser.id;
+				console.log('Match vs IA creado.');
 			}
 			else if (matchData.match_type === 'local') {
 				const guessUser = await UserModel.findOne({ where: { username: 'guess' } });
 				if (!guessUser) {
 					return res.status(500).send({ error: 'El usuario Guest (guess) no se encuentra en la base de datos.' });
 				}
-				matchData.player_two_id = guessUser.id;
-                console.log('Match Local (vs Guess) creado.');
+				matchData.palyer2 = guessUser.id;
+				console.log('Match Local (vs Guess) creado.');
 			} else if (matchData.match_type === 'friends') {
-                if (!matchData.player_two_id) {
-                     return res.status(400).send({ error: 'Falta el ID del oponente para una partida entre amigos.' });
-                }
-                const opponentUser = await UserModel.findByPk(matchData.player_two_id);
-                if (!opponentUser) {
-                    return res.status(404).send({ error: 'El usuario oponente especificado no existe.' });
-                }
-                console.log(`Match vs Friend (ID: ${matchData.player_two_id}) creado.`);
-            } else if (!matchData.player_two_id) {
-                 console.warn(`Tipo de partida desconocido o player_two_id faltante: ${matchData.match_type}. Asignando 'guess' por defecto.`);
-                 const guessUser = await UserModel.findOne({ where: { username: 'guess' } });
-                 matchData.player_two_id = guessUser ? guessUser.id : null;
-                 if (!matchData.player_two_id) return res.status(500).send({ error: 'El usuario Guest (guess) no se encuentra y es necesario.' });
-            }
+				if (!matchData.palyer2) {
+					return res.status(400).send({ error: 'Falta el ID del oponente para una partida entre amigos.' });
+				}
+				const opponentUser = await UserModel.findByPk(matchData.palyer2);
+				if (!opponentUser) {
+					return res.status(404).send({ error: 'El usuario oponente especificado no existe.' });
+				}
+				console.log(`Match vs Friend (ID: ${matchData.palyer2}) creado.`);
+			} else if (!matchData.palyer2) {
+				console.warn(`Tipo de partida desconocido o palyer2 faltante: ${matchData.match_type}. Asignando 'guess' por defecto.`);
+				const guessUser = await UserModel.findOne({ where: { username: 'guess' } });
+				matchData.palyer2 = guessUser ? guessUser.id : null;
+				if (!matchData.palyer2) return res.status(500).send({ error: 'El usuario Guest (guess) no se encuentra y es necesario.' });
+			}
 			const matchModel = await MatchModel.create(matchData);
 
 			if (matchModel) {
@@ -60,9 +60,9 @@ class MatchControler {
 			}
 		} catch (e) {
 			console.error('Error en createMatch:', e);
-            if (e.name === 'SequelizeValidationError') {
-                 return res.status(400).send({ error: 'Datos inválidos para crear la partida.', details: e.errors });
-            }
+			if (e.name === 'SequelizeValidationError') {
+				return res.status(400).send({ error: 'Datos inválidos para crear la partida.', details: e.errors });
+			}
 			res.status(500).send({ error: e.message || 'Error interno del servidor.' });
 		};
 	}
@@ -74,8 +74,8 @@ class MatchControler {
 
 			if (queryParams.user_id) {
 				whereClause[Op.or] = [
-					{ player_one_id: queryParams.user_id },
-					{ player_two_id: queryParams.user_id }
+					{ palyer1: queryParams.user_id },
+					{ palyer2: queryParams.user_id }
 				];
 				delete queryParams.user_id;
 			}
@@ -119,8 +119,8 @@ class MatchControler {
 			let updatedPlayerOne = null;
 			let updatedPlayerTwo = null;
 			if (updates.match_status === 'finish' && match.player_one_points !== match.player_two_points) {
-				const playerOne = await UserModel.findByPk(match.player_one_id);
-				const playerTwo = await UserModel.findByPk(match.player_two_id);
+				const playerOne = await UserModel.findByPk(match.palyer1);
+				const playerTwo = await UserModel.findByPk(match.palyer2);
 
 				if (playerOne && playerTwo) {
 					const playerOneWon = match.player_one_points > match.player_two_points;
@@ -146,8 +146,8 @@ class MatchControler {
 				}
 			} else if (updates.match_status === 'finish') {
 				console.log(`Partida ${matchId} terminada en empate. No se actualiza el ELO.`);
-				const playerOne = await UserModel.findByPk(match.player_one_id, { attributes: { exclude: ['password', 'twofa_secret'] } });
-				const playerTwo = await UserModel.findByPk(match.player_two_id, { attributes: { exclude: ['password', 'twofa_secret'] } });
+				const playerOne = await UserModel.findByPk(match.palyer1, { attributes: { exclude: ['password', 'twofa_secret'] } });
+				const playerTwo = await UserModel.findByPk(match.palyer2, { attributes: { exclude: ['password', 'twofa_secret'] } });
 				updatedPlayerOne = playerOne ? playerOne.get({ plain: true }) : null;
 				updatedPlayerTwo = playerTwo ? playerTwo.get({ plain: true }) : null;
 			}

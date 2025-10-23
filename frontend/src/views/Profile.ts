@@ -3,8 +3,7 @@ import { playTrack } from '../utils/musicPlayer';
 import { authenticatedFetch } from '../utils/auth';
 import i18next from '../utils/i18n';
 
-interface User
-{
+interface User {
 	id: number;
 	username: string;
 	email: string;
@@ -14,11 +13,10 @@ interface User
 	avatar_url?: string;
 }
 
-interface Match
-{
+interface Match {
 	id: number;
-	player_one_id: number;
-	player_two_id: number;
+	palyer1: number;
+	palyer2: number;
 	player_one_points: number;
 	player_two_points: number;
 	match_status: 'pending' | 'playing' | 'finish';
@@ -28,8 +26,7 @@ interface Match
 	player_two: { id: number, username: string };
 }
 
-interface Stats
-{
+interface Stats {
 	played: number;
 	victories: number;
 	defeats: number;
@@ -37,20 +34,16 @@ interface Stats
 }
 
 
-async function handleLogout()
-{
-	try
-	{
+async function handleLogout() {
+	try {
 		await authenticatedFetch('/api/auth/logout', {
 			method: 'POST',
 		});
 	}
-	catch (error)
-	{
+	catch (error) {
 		console.error("Error contacting server to log out:", (error as Error).message);
 	}
-	finally
-	{
+	finally {
 		localStorage.clear();
 		navigate('/login');
 	}
@@ -108,7 +101,7 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 		stats.played = history.length;
 		stats.victories = history.filter(match => {
 			if (match.player_one_points === match.player_two_points) return false;
-			const isPlayerOne = match.player_one_id === user.id;
+			const isPlayerOne = match.palyer1 === user.id;
 			return isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
 		}).length;
 		stats.draws = history.filter(match => match.player_one_points === match.player_two_points).length; // Contar empates
@@ -199,27 +192,26 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 				<div class="bg-gray-800 bg-opacity-75 p-6 rounded-lg border-2 border-cyan-400 shadow-lg lg:flex lg:flex-col lg:flex-grow">
 					<h3 class="text-xl md:text-2xl font-bold mb-4">${i18next.t('matchHistory')}</h3>
 					<div id="history-container" class="space-y-3 max-h-80 lg:max-h-none overflow-y-auto pr-2 lg:flex-grow">
-						${history.length > 0 ? history.map(match =>
-						{
-							const isPlayerOne = match.player_one_id === user.id;
-							let result = '';
-							let resultClass = '';
+						${history.length > 0 ? history.map(match => {
+		const isPlayerOne = match.palyer1 === user.id;
+		let result = '';
+		let resultClass = '';
 
-							if (match.player_one_points === match.player_two_points) {
-								result = i18next.t('drawResult');
-								resultClass = 'text-yellow-400';
-							} else {
-								const didWin = isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
-								result = didWin ? i18next.t('victory') : i18next.t('defeat');
-								resultClass = didWin ? 'text-green-400' : 'text-red-400';
-							}
+		if (match.player_one_points === match.player_two_points) {
+			result = i18next.t('drawResult');
+			resultClass = 'text-yellow-400';
+		} else {
+			const didWin = isPlayerOne ? match.player_one_points > match.player_two_points : match.player_two_points > match.player_one_points;
+			result = didWin ? i18next.t('victory') : i18next.t('defeat');
+			resultClass = didWin ? 'text-green-400' : 'text-red-400';
+		}
 
-							const score = isPlayerOne ? `${match.player_one_points}-${match.player_two_points}` : `${match.player_two_points}-${match.player_one_points}`;
-							const opponent = isPlayerOne ? match.player_two : match.player_one;
-							const opponentUsername = opponent ? opponent.username : 'Desconocido';
-							const gameName = match.game === 'tictactoe' ? 'TicTacToe' : 'Pong';
+		const score = isPlayerOne ? `${match.player_one_points}-${match.player_two_points}` : `${match.player_two_points}-${match.player_one_points}`;
+		const opponent = isPlayerOne ? match.player_two : match.player_one;
+		const opponentUsername = opponent ? opponent.username : 'Desconocido';
+		const gameName = match.game === 'tictactoe' ? 'TicTacToe' : 'Pong';
 
-							return `
+		return `
 							<div class="flex flex-wrap justify-between items-center bg-gray-700 p-3 rounded text-sm md:text-base">
 								<p class="font-bold text-cyan-300">${gameName}</p>
 								<p>${i18next.t('vs')} <span class="font-bold">${opponentUsername}</span></p>
@@ -247,10 +239,8 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 	setup2FA(user);
 }
 
-async function setupProfileEditing(user: User)
-{
-	document.getElementById('save-profile-btn')?.addEventListener('click', async () =>
-	{
+async function setupProfileEditing(user: User) {
+	document.getElementById('save-profile-btn')?.addEventListener('click', async () => {
 		const usernameInput = document.getElementById('username-input') as HTMLInputElement;
 		const emailInput = document.getElementById('email-input') as HTMLInputElement;
 
@@ -258,14 +248,12 @@ async function setupProfileEditing(user: User)
 		if (usernameInput.value !== user.username) updatedData.username = usernameInput.value;
 		if (emailInput.value !== user.email) updatedData.email = emailInput.value;
 
-		if (Object.keys(updatedData).length === 0)
-		{
+		if (Object.keys(updatedData).length === 0) {
 			alert(i18next.t('noChanges'));
 			return;
 		}
 
-		try
-		{
+		try {
 			const response = await authenticatedFetch(`/api/users/${user.id}`, {
 				method: 'PUT',
 				headers: {
@@ -274,8 +262,7 @@ async function setupProfileEditing(user: User)
 				body: JSON.stringify(updatedData),
 			});
 
-			if (!response.ok)
-			{
+			if (!response.ok) {
 				const error = await response.json();
 				throw new Error(error.message || i18next.t('errorUpdatingProfile'));
 			}
@@ -285,72 +272,67 @@ async function setupProfileEditing(user: User)
 			alert(i18next.t('profileUpdated'));
 			location.reload(); // Recarga para ver cambios
 		}
-		catch (error)
-		{
+		catch (error) {
 			alert(`Error: ${(error as Error).message}`);
 		}
 	});
 }
 
 function setupAvatarUpload(user: User) {
-    const uploadInput = document.getElementById('avatar-upload') as HTMLInputElement;
-    const avatarImg = document.getElementById('avatar-img') as HTMLImageElement;
+	const uploadInput = document.getElementById('avatar-upload') as HTMLInputElement;
+	const avatarImg = document.getElementById('avatar-img') as HTMLImageElement;
 
-    uploadInput.addEventListener('change', async () => {
-        const file = uploadInput.files?.[0];
-        if (!file) return;
+	uploadInput.addEventListener('change', async () => {
+		const file = uploadInput.files?.[0];
+		if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = () => {
-            avatarImg.src = reader.result as string;
-        };
-        reader.readAsDataURL(file);
+		const reader = new FileReader();
+		reader.onload = () => {
+			avatarImg.src = reader.result as string;
+		};
+		reader.readAsDataURL(file);
 
-        const formData = new FormData();
-        formData.append('avatar', file);
+		const formData = new FormData();
+		formData.append('avatar', file);
 
-        try {
-            const response = await authenticatedFetch('/api/users/avatar', { // Asegúrate que esta es la ruta correcta
-                method: 'POST',
-                body: formData, // No necesitas 'Content-Type', fetch lo deduce para FormData
-            });
+		try {
+			const response = await authenticatedFetch('/api/users/avatar', { // Asegúrate que esta es la ruta correcta
+				method: 'POST',
+				body: formData, // No necesitas 'Content-Type', fetch lo deduce para FormData
+			});
 
-            const result = await response.json();
+			const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(result.message || result.error || 'Error al subir el avatar.');
-            }
+			if (!response.ok) {
+				throw new Error(result.message || result.error || 'Error al subir el avatar.');
+			}
 
-            const updatedUser = { ...user, avatar_url: result.avatarUrl };
-            localStorage.setItem('user', JSON.stringify(updatedUser));
-            avatarImg.src = `${result.avatarUrl}?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
-            alert(i18next.t('profileUpdated'));
+			const updatedUser = { ...user, avatar_url: result.avatarUrl };
+			localStorage.setItem('user', JSON.stringify(updatedUser));
+			avatarImg.src = `${result.avatarUrl}?t=${new Date().getTime()}`; // Añadir timestamp para evitar caché
+			alert(i18next.t('profileUpdated'));
 
-        } catch (error) {
-            console.error('Error al subir avatar:', error);
-            alert(`Error: ${(error as Error).message}`);
-            avatarImg.src = user.avatar_url ? `${user.avatar_url}?t=${new Date().getTime()}` : `/assets/placeholder.png`;
-        }
-    });
+		} catch (error) {
+			console.error('Error al subir avatar:', error);
+			alert(`Error: ${(error as Error).message}`);
+			avatarImg.src = user.avatar_url ? `${user.avatar_url}?t=${new Date().getTime()}` : `/assets/placeholder.png`;
+		}
+	});
 }
 
-function setup2FA(user: User)
-{
+function setup2FA(user: User) {
 	const twoFASection = document.getElementById('2fa-section')!;
 
-	const update2FAStatus = () =>
-	{
+	const update2FAStatus = () => {
 		const currentUser: User = JSON.parse(localStorage.getItem('user') || '{}');
-		if (currentUser.twofa_enabled)
-		{
+		if (currentUser.twofa_enabled) {
 			twoFASection.innerHTML = `
 				<p class="text-green-400 mb-2">✔️ ${i18next.t('2faActive')}</p>
 				<button id="disable-2fa-btn" class="w-full bg-red-600 hover:bg-red-700 py-2 rounded font-bold">${i18next.t('disable2FA')}</button>
 			`;
 			document.getElementById('disable-2fa-btn')?.addEventListener('click', showDisable2FAModal);
 		}
-		else
-		{
+		else {
 			twoFASection.innerHTML = `
 				<p class="text-yellow-400 mb-2">⚠️ ${i18next.t('2faInactive')}</p>
 				<button id="enable-2fa-btn" class="relative w-full h-[75px] cursor-pointer transform hover:scale-125 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
@@ -364,10 +346,8 @@ function setup2FA(user: User)
 	update2FAStatus();
 }
 
-async function handleSetup2FA()
-{
-	try
-	{
+async function handleSetup2FA() {
+	try {
 		const response = await authenticatedFetch('/api/auth/2fa/setup', { method: 'POST' });
 		if (!response.ok) throw new Error(i18next.t('errorStarting2fa'));
 
@@ -375,14 +355,12 @@ async function handleSetup2FA()
 		showEnable2FAModal(data.qr_code);
 
 	}
-	catch (error)
-	{
+	catch (error) {
 		alert(`Error: ${(error as Error).message}`);
 	}
 }
 
-function showEnable2FAModal(qrCode: string)
-{
+function showEnable2FAModal(qrCode: string) {
 	const modal = document.getElementById('2fa-modal')!;
 	const modalContent = document.getElementById('2fa-modal-content')!;
 
@@ -400,13 +378,11 @@ function showEnable2FAModal(qrCode: string)
 	modal.classList.remove('hidden');
 
 	document.getElementById('cancel-2fa-btn')?.addEventListener('click', () => modal.classList.add('hidden'));
-	document.getElementById('verify-2fa-btn')?.addEventListener('click', async () =>
-	{
+	document.getElementById('verify-2fa-btn')?.addEventListener('click', async () => {
 		const code = (document.getElementById('2fa-code-input') as HTMLInputElement).value;
 		if (!/^\d{6}$/.test(code)) return alert(i18next.t('enterValid6DigitCode')); // Validar que sean 6 dígitos
 
-		try
-		{
+		try {
 			const response = await authenticatedFetch('/api/auth/2fa/enable', {
 				method: 'POST',
 				headers: {
@@ -421,23 +397,20 @@ function showEnable2FAModal(qrCode: string)
 			alert(i18next.t('2faEnabledSuccess'));
 
 			const user: User | null = JSON.parse(localStorage.getItem('user') || 'null');
-			if (user)
-			{
+			if (user) {
 				user.twofa_enabled = true;
 				localStorage.setItem('user', JSON.stringify(user));
 			}
 			modal.classList.add('hidden');
 			setup2FA(user!); // Llamar setup2FA para refrescar la sección en la página principal
 		}
-		catch (error)
-		{
+		catch (error) {
 			alert(`Error: ${(error as Error).message}`);
 		}
 	});
 }
 
-function showDisable2FAModal()
-{
+function showDisable2FAModal() {
 	const modal = document.getElementById('2fa-modal')!;
 	const modalContent = document.getElementById('2fa-modal-content')!;
 
@@ -459,15 +432,13 @@ function showDisable2FAModal()
 	modal.classList.remove('hidden');
 
 	document.getElementById('cancel-disable-btn')?.addEventListener('click', () => modal.classList.add('hidden'));
-	document.getElementById('confirm-disable-btn')?.addEventListener('click', async () =>
-	{
+	document.getElementById('confirm-disable-btn')?.addEventListener('click', async () => {
 		const password = (document.getElementById('password-input') as HTMLInputElement).value;
 		const code = (document.getElementById('2fa-code-input') as HTMLInputElement).value;
 
 		if (!password || !/^\d{6}$/.test(code)) return alert(i18next.t('fillBothFields')); // Validar código también
 
-		try
-		{
+		try {
 			const response = await authenticatedFetch('/api/auth/2fa/disable', {
 				method: 'POST',
 				headers: {
@@ -483,8 +454,7 @@ function showDisable2FAModal()
 			localStorage.clear();
 			navigate('/login');
 		}
-		catch (error)
-		{
+		catch (error) {
 			alert(`Error: ${(error as Error).message}`);
 		}
 	});

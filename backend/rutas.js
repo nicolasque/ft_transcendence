@@ -166,7 +166,7 @@ const rutas = [
 		handler: MatchControler.createMatch
 	},
 	{
-		method: "GET", // si haces /match/getall?match_type=local&player_one_id=4 te devolvera solo los partidos con esas propiedades, puedes poner tantos capos como quieras si no pones nada te devuelve todo
+		method: "GET", // si haces /match/getall?match_type=local&palyer1=4 te devolvera solo los partidos con esas propiedades, puedes poner tantos capos como quieras si no pones nada te devuelve todo
 		url: "/match/getall",
 		preHandler: authMiddleware,
 		handler: MatchControler.getAllMatch
