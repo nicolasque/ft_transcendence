@@ -33,6 +33,7 @@ export const PONG_MAPS: Record<string, MapConfig> = {
   }
 };
 
+
 export interface GameObjects {
     ball: BallObject;
     player1: PaddleObject;
@@ -79,9 +80,6 @@ export interface Score {
     p4?: number;
 }
 
-export type GameMode = 'ONE_PLAYER' | 'TWO_PLAYERS' | 'FOUR_PLAYERS';
-
-export type DifficultyLevel = 'EASY' | 'MEDIUM' | 'HARD' | 'IMPOSSIBLE';
 
 export interface DifficultyConfig {
     name: string;
