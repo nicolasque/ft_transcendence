@@ -64,7 +64,7 @@ function renderParticipantBoxes(count: number, container: HTMLElement, currentUs
 		if (i === 0) {
 			// Caja para el usuario actual
 			boxContent = `
-                <p class="text-white font-bold text-lg">${currentUser.username} (${i18next.t('Tú')})</p>
+                <p class="text-white font-bold text-lg">${currentUser.username} (${i18next.t('you')})</p>
                 <input type="hidden" name="participant-${i}-id" value="${currentUser.id}">
                 <input type="hidden" name="participant-${i}-type" value="user">
             `;
@@ -76,27 +76,27 @@ function renderParticipantBoxes(count: number, container: HTMLElement, currentUs
 			const guestAliasValue = isGuestSelected ? (currentParticipant?.guestAlias || '') : ''; // Recuperar alias si ya existe
 
 			boxContent = `
-                <label class="block text-lg font-medium text-gray-300 mb-2">${i18next.t('Participante')} ${i + 1}:</label>
+                <label class="block text-lg font-medium text-gray-300 mb-2">${i18next.t('participant')} ${i + 1}:</label>
                 <div class="flex items-center space-x-4 mb-3">
                     <label class="flex items-center text-white cursor-pointer">
-                        <input type="radio" name="participant-${i}-type" value="friend" class="participant-type-radio mr-2" data-index="${i}" ${!isGuestSelected ? 'checked' : ''}> ${i18next.t('Amigo')}
+                        <input type="radio" name="participant-${i}-type" value="friend" class="participant-type-radio mr-2" data-index="${i}" ${!isGuestSelected ? 'checked' : ''}> ${i18next.t('friend')}
                     </label>
                     <label class="flex items-center text-white cursor-pointer">
-                        <input type="radio" name="participant-${i}-type" value="guest" class="participant-type-radio mr-2" data-index="${i}" ${isGuestSelected ? 'checked' : ''}> ${i18next.t('Invitado')}
+                        <input type="radio" name="participant-${i}-type" value="guest" class="participant-type-radio mr-2" data-index="${i}" ${isGuestSelected ? 'checked' : ''}> ${i18next.t('guest')}
                     </label>
                 </div>
 
                 <div id="friend-selector-${i}" class="${isGuestSelected ? 'hidden' : ''}">
                     <select name="participant-${i}-friend" class="participant-select-friend bg-gray-700 p-2 rounded text-white w-full mb-2" data-index="${i}">
-                        <option value="">-- ${i18next.t('Selecciona un amigo')} --</option>
+                        <option value="">-- ${i18next.t('selectFriend')} --</option>
                         ${allFriends.map(friend => `<option value="${friend.id}" ${friend.id === selectedFriendId ? 'selected' : ''}>${friend.username}</option>`).join('')}
                     </select>
                 </div>
 
                 <div id="guest-alias-input-${i}" class="${!isGuestSelected ? 'hidden' : ''}">
-                     <input type="text" value="${guestAliasValue}" name="participant-${i}-guest-alias" class="participant-input-guest-alias bg-gray-700 p-2 rounded text-white w-full" placeholder="${i18next.t('Alias para Invitado')} ${i + 1}" data-index="${i}">
+                     <input type="text" value="${guestAliasValue}" name="participant-${i}-guest-alias" class="participant-input-guest-alias bg-gray-700 p-2 rounded text-white w-full" placeholder="${i18next.t('guestAliasFor')} ${i + 1}" data-index="${i}">
                      <p id="assigned-guest-info-${i}" class="text-xs text-gray-400 mt-1">
-                        ${(isGuestSelected && currentParticipant) ? `(Asignado: ${currentParticipant.username})` : ''}
+                        ${(isGuestSelected && currentParticipant) ? `(${i18next.t('assigned')}: ${currentParticipant.username})` : ''}
                      </p>
                 </div>
             `;
@@ -145,7 +145,7 @@ function handleParticipantTypeChange(event: Event) {
 
 			if (nextAvailableGuest) {
 				const aliasInput = box.querySelector('.participant-input-guest-alias') as HTMLInputElement;
-				const currentAlias = aliasInput.value.trim() || `${i18next.t('Invitado')} ${index + 1}`; // Mantener alias si ya había
+				const currentAlias = aliasInput.value.trim() || `${i18next.t('guest')} ${index + 1}`; // Mantener alias si ya había
 				participants[index] = {
 					...nextAvailableGuest, // Copia datos del guest real
 					isGuest: true,         // Flag frontend
@@ -155,7 +155,7 @@ function handleParticipantTypeChange(event: Event) {
 				console.log(`Caja ${index}: Asignado automáticamente guest ID ${nextAvailableGuest.id} (${nextAvailableGuest.username})`);
 			} else {
 				// No quedan guests disponibles
-				alert(i18next.t('No hay suficientes usuarios invitados disponibles', { ns: 'translation', defaultValue: 'Not enough guest users available' }));
+				alert(i18next.t('notEnoughGuests'));
 				// Resetear radio a 'Amigo' o dejar el slot vacío y mostrar error
 				(target as HTMLInputElement).checked = false; // Desmarcar 'Invitado'
 				const friendRadio = box.querySelector(`input[name="participant-${index}-type"][value="friend"]`) as HTMLInputElement;
@@ -223,7 +223,7 @@ function handleGuestAliasChange(event: Event) {
 		const alias = inputElement.value.trim();
 
 		if (participants[index] && participants[index]?.is_guest) {
-			participants[index]!.guestAlias = alias || `${i18next.t('Invitado')} ${index + 1}`; // Usar alias o default
+			participants[index]!.guestAlias = alias || `${i18next.t('guest')} ${index + 1}`; // Usar alias o default
 			console.log(`Caja ${index}: Alias para guest ID ${participants[index]?.id} actualizado a "${participants[index]!.guestAlias}"`);
 		} else {
 			console.log(`Caja ${index}: Intento de actualizar alias, pero no hay guest asignado.`);
@@ -282,11 +282,11 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
         </div>
         <form id="tournament-options-form" class="bg-gray-800 bg-opacity-75 p-6 rounded-lg border-2 border-cyan-400 shadow-lg mb-8 w-full max-w-lg flex-shrink-0">
             <div class="mb-4">
-                <label for="tournament-name" class="block text-lg mb-2">${i18next.t('Nombre del Torneo')}:</label>
-                <input type="text" id="tournament-name" name="tournament-name" class="w-full bg-gray-700 p-2 rounded text-white" placeholder="${i18next.t('Ej: Torneo Rápido')}">
+                <label for="tournament-name" class="block text-lg mb-2">${i18next.t('tournamentName')}:</label>
+                <input type="text" id="tournament-name" name="tournament-name" class="w-full bg-gray-700 p-2 rounded text-white" placeholder="${i18next.t('egQuickTournament')}">
             </div>
             <div class="mb-4">
-                <label for="participant-count" class="block text-lg mb-2">${i18next.t('Nº Participantes')}:</label>
+                <label for="participant-count" class="block text-lg mb-2">${i18next.t('numParticipants')}:</label>
                 <select name="participant-count" id="participant-count" class="w-full bg-gray-700 p-2 rounded text-white">
                     <option value="4" ${initialCount === 4 ? 'selected' : ''}>4</option>
                     <option value="8" ${initialCount === 8 ? 'selected' : ''}>8</option>
@@ -294,7 +294,7 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
                 </select>
             </div>
              <div class="mb-4">
-                <label for="game-type" class="block text-lg mb-2">${i18next.t('Juego')}:</label>
+                <label for="game-type" class="block text-lg mb-2">${i18next.t('game')}:</label>
                 <select name="game-type" id="game-type" class="w-full bg-gray-700 p-2 rounded text-white">
                     <option value="pong">Pong</option>
                     <option value="tictactoe">Tic Tac Toe</option>
@@ -340,7 +340,7 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
 async function handleStartTournament() {
 	const tournamentNameInput = document.getElementById('tournament-name') as HTMLInputElement;
 	const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
-	const name = tournamentNameInput.value.trim() || `${i18next.t('Torneo Rápido')}`;
+	const name = tournamentNameInput.value.trim() || `${i18next.t('quickTournament')}`;
 	const selectedCount = parseInt(participantCountSelect.value);
 
 	const finalParticipantIds: number[] = [];
@@ -351,7 +351,7 @@ async function handleStartTournament() {
 	for (let i = 0; i < selectedCount; i++) {
 		const participant = participants[i];
 		if (!participant || participant.id == null || participant.id < 0) {
-			alert(`${i18next.t('Debes completar la selección para el Participante')} ${i + 1}.`);
+			alert(`${i18next.t('completeSelectionFor')} ${i + 1}.`);
 			return;
 		}
 		finalParticipantIds.push(participant.id);
@@ -360,11 +360,11 @@ async function handleStartTournament() {
 		}
 	}
 	if (new Set(finalParticipantIds).size !== finalParticipantIds.length) {
-		alert(`${i18next.t('No puedes añadir al mismo participante (amigo o invitado) varias veces.')}`);
+		alert(`${i18next.t('noDuplicateParticipants')}`);
 		return;
 	}
 	if (finalParticipantIds.length !== selectedCount) {
-		alert(`${i18next.t('Error: Se esperaban')} ${selectedCount} ${i18next.t('participantes pero se procesaron')} ${finalParticipantIds.length}.`);
+		alert(`${i18next.t('errorExpectedParticipants', { count: selectedCount, processed: finalParticipantIds.length })}`);
 		return;
 	}
 
@@ -389,7 +389,7 @@ async function handleStartTournament() {
 		});
 		const result = await response.json();
 		if (!response.ok) {
-			let errorMsg = result.message || 'Error al crear el torneo en el backend';
+			let errorMsg = result.message || i18next.t('errorCreatingTournament');
 			// ... (manejo de errores específicos)
 			if (response.status === 400 && errorMsg?.includes("potencia de 2")) {
 				errorMsg = i18next.t('El número de participantes debe ser una potencia de 2 (4, 8, 16...).');
@@ -448,7 +448,7 @@ async function handleStartTournament() {
 		});
 
 
-		alert(`¡${i18next.t('Torneo')} "${name}" ${i18next.t('creado con éxito')}!`);
+		alert(i18next.t('tournamentCreatedSuccess', { name: name }));
 
 		participants = [];
 		allFriends = [];
@@ -457,6 +457,6 @@ async function handleStartTournament() {
 		navigate(`/tournament-match/${tournamentId}`);
 	} catch (error) {
 		console.error("Error al iniciar el torneo:", error);
-		alert(`${i18next.t('Error al crear torneo')}: ${(error as Error).message}`);
+		alert(`${i18next.t('errorCreatingTournament')}: ${(error as Error).message}`);
 	}
 }
