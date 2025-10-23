@@ -27,21 +27,21 @@ function predictBallTrajectory(ball: BallObject, targetX: number, canvasHeight: 
 		} else if (simBall.y + ballRadius > canvasHeight && simBall.dy > 0) {
 			simBall.dy *= -1;
 			simBall.y = canvasHeight - ballRadius;
-        }
+		}
 
-        if (currentMapConfig && currentMapConfig.obstacles) {
-            for (const obstacle of currentMapConfig.obstacles) {
-                const collisionType = checkObstacleCollision(simBall, obstacle, ballRadius);
-                if (collisionType === 'horizontal') {
-                    simBall.dx *= -1;
-                    simBall.x += simBall.dx > 0 ? 1 : -1;
-                    break;
-                } else if (collisionType === 'vertical') {
-                    simBall.dy *= -1;
-                    simBall.y += simBall.dy > 0 ? 1 : -1;
-                    break;
-                }
-            }
+		if (currentMapConfig && currentMapConfig.obstacles) {
+			for (const obstacle of currentMapConfig.obstacles) {
+				const collisionType = checkObstacleCollision(simBall, obstacle, ballRadius);
+				if (collisionType === 'horizontal') {
+					simBall.dx *= -1;
+					simBall.x += simBall.dx > 0 ? 1 : -1;
+					break;
+				} else if (collisionType === 'vertical') {
+					simBall.dy *= -1;
+					simBall.y += simBall.dy > 0 ? 1 : -1;
+					break;
+				}
+			}
 		}
 
 		if ((ball.dx > 0 && simBall.x >= targetX) || (ball.dx < 0 && simBall.x <= targetX)) {
@@ -53,48 +53,48 @@ function predictBallTrajectory(ball: BallObject, targetX: number, canvasHeight: 
 }
 
 function checkObstacleCollision(ball: BallObject, obstacle: Obstacle, ballRadius: number): ('horizontal' | 'vertical' | null) {
-    const closestX = Math.max(obstacle.x, Math.min(ball.x, obstacle.x + obstacle.width));
-    const closestY = Math.max(obstacle.y, Math.min(ball.y, obstacle.y + obstacle.height));
+	const closestX = Math.max(obstacle.x, Math.min(ball.x, obstacle.x + obstacle.width));
+	const closestY = Math.max(obstacle.y, Math.min(ball.y, obstacle.y + obstacle.height));
 
-    const distX = ball.x - closestX;
-    const distY = ball.y - closestY;
-    const distanceSquared = (distX * distX) + (distY * distY);
+	const distX = ball.x - closestX;
+	const distY = ball.y - closestY;
+	const distanceSquared = (distX * distX) + (distY * distY);
 
-    if (distanceSquared < (ballRadius * ballRadius)) {
-        // Determinar desde qué lado viene la bola usando su dirección
-        const fromLeft = ball.x < obstacle.x;
-        const fromRight = ball.x > obstacle.x + obstacle.width;
-        const fromTop = ball.y < obstacle.y;
-        const fromBottom = ball.y > obstacle.y + obstacle.height;
+	if (distanceSquared < (ballRadius * ballRadius)) {
+		// Determinar desde qué lado viene la bola usando su dirección
+		const fromLeft = ball.x < obstacle.x;
+		const fromRight = ball.x > obstacle.x + obstacle.width;
+		const fromTop = ball.y < obstacle.y;
+		const fromBottom = ball.y > obstacle.y + obstacle.height;
 
-        // Si viene claramente desde un lado horizontal
-        if (fromLeft || fromRight) {
-            return 'horizontal';
-        }
-        // Si viene claramente desde un lado vertical
-        if (fromTop || fromBottom) {
-            return 'vertical';
-        }
+		// Si viene claramente desde un lado horizontal
+		if (fromLeft || fromRight) {
+			return 'horizontal';
+		}
+		// Si viene claramente desde un lado vertical
+		if (fromTop || fromBottom) {
+			return 'vertical';
+		}
 
-        // Para casos ambiguos (esquinas), usar la dirección de la velocidad
-        const absDistX = Math.abs(distX);
-        const absDistY = Math.abs(distY);
-        
-        // Si la distancia horizontal es mayor, es colisión horizontal
-        if (absDistX > absDistY) {
-            return 'horizontal';
-        } else {
-            return 'vertical';
-        }
-    }
-    return null;
+		// Para casos ambiguos (esquinas), usar la dirección de la velocidad
+		const absDistX = Math.abs(distX);
+		const absDistY = Math.abs(distY);
+
+		// Si la distancia horizontal es mayor, es colisión horizontal
+		if (absDistX > absDistY) {
+			return 'horizontal';
+		} else {
+			return 'vertical';
+		}
+	}
+	return null;
 }
 
 
 export function initializePongGame(
-	container: HTMLElement, 
-	player1?: ParticipantInfo, 
-	player2?: ParticipantInfo, 
+	container: HTMLElement,
+	player1?: ParticipantInfo,
+	player2?: ParticipantInfo,
 	matchId_Variatic?: number
 ): Promise<MatchResult> {
 	return new Promise((resolve) => {
@@ -127,7 +127,7 @@ export function initializePongGame(
 		let gameObjects: GameObjects;
 		let animationFrameId: number | null = null;
 		let matchId: number | null = null;
-    let currentMapConfig: MapConfig;
+		let currentMapConfig: MapConfig;
 
 		// Si se pasa matchId_Variatic, es una partida de torneo
 		const isTournamentMatch = matchId_Variatic !== undefined;
@@ -137,35 +137,35 @@ export function initializePongGame(
 
 		const gameMode: GameMode = localStorage.getItem('gameMode') as GameMode || 'ONE_PLAYER';
 		const difficulty: DifficultyLevel = localStorage.getItem('difficulty') as DifficultyLevel || 'EASY';
-    const selectedMap = localStorage.getItem('selectedMap') || 'classic';
+		const selectedMap = localStorage.getItem('selectedMap') || 'classic';
 
-    let currentBallSpeed: number;
-    let currentPaddleSpeed: number;
-    let currentBallRadius: number;
-    let currentPaddleLength: number;
-    let currentPaddleThickness = PADDLE_THICKNESS;
+		let currentBallSpeed: number;
+		let currentPaddleSpeed: number;
+		let currentBallRadius: number;
+		let currentPaddleLength: number;
+		let currentPaddleThickness = PADDLE_THICKNESS;
 
-    if (selectedMap === 'custom') {
-        currentBallSpeed = parseInt(localStorage.getItem('custom_ballSpeed') || `${INITIAL_BALL_SPEED}`);
-        currentPaddleSpeed = parseInt(localStorage.getItem('custom_paddleSpeed') || `${PADDLE_SPEED_CLASSIC}`);
-        currentBallRadius = parseInt(localStorage.getItem('custom_ballSize') || `${BALL_RADIUS}`);
-        currentPaddleLength = parseInt(localStorage.getItem('custom_paddleLength') || `${PADDLE_LENGTH_CLASSIC}`);
-        currentMapConfig = PONG_MAPS['classic']; // Use classic map layout for custom settings
-        console.log("Modo Custom - Valores:", { currentBallSpeed, currentPaddleSpeed, currentBallRadius, currentPaddleLength });
-    } else {
-        currentMapConfig = PONG_MAPS[selectedMap] || PONG_MAPS.classic;
-        if (gameMode === 'FOUR_PLAYERS') {
-            currentBallSpeed = INITIAL_BALL_SPEED;
-            currentPaddleSpeed = PADDLE_SPEED_4P;
-            currentBallRadius = BALL_RADIUS;
-            currentPaddleLength = PADDLE_LENGTH_4P;
-        } else {
-            currentBallSpeed = INITIAL_BALL_SPEED;
-            currentPaddleSpeed = PADDLE_SPEED_CLASSIC;
-            currentBallRadius = BALL_RADIUS;
-            currentPaddleLength = PADDLE_LENGTH_CLASSIC;
-        }
-    }
+		if (selectedMap === 'custom') {
+			currentBallSpeed = parseInt(localStorage.getItem('custom_ballSpeed') || `${INITIAL_BALL_SPEED}`);
+			currentPaddleSpeed = parseInt(localStorage.getItem('custom_paddleSpeed') || `${PADDLE_SPEED_CLASSIC}`);
+			currentBallRadius = parseInt(localStorage.getItem('custom_ballSize') || `${BALL_RADIUS}`);
+			currentPaddleLength = parseInt(localStorage.getItem('custom_paddleLength') || `${PADDLE_LENGTH_CLASSIC}`);
+			currentMapConfig = PONG_MAPS['classic']; // Use classic map layout for custom settings
+			console.log("Modo Custom - Valores:", { currentBallSpeed, currentPaddleSpeed, currentBallRadius, currentPaddleLength });
+		} else {
+			currentMapConfig = PONG_MAPS[selectedMap] || PONG_MAPS.classic;
+			if (gameMode === 'FOUR_PLAYERS') {
+				currentBallSpeed = INITIAL_BALL_SPEED;
+				currentPaddleSpeed = PADDLE_SPEED_4P;
+				currentBallRadius = BALL_RADIUS;
+				currentPaddleLength = PADDLE_LENGTH_4P;
+			} else {
+				currentBallSpeed = INITIAL_BALL_SPEED;
+				currentPaddleSpeed = PADDLE_SPEED_CLASSIC;
+				currentBallRadius = BALL_RADIUS;
+				currentPaddleLength = PADDLE_LENGTH_CLASSIC;
+			}
+		}
 
 
 		const keysPressed: { [key: string]: boolean } = {};
@@ -369,21 +369,21 @@ export function initializePongGame(
 			// Manejar colisiones con palas solo si no hubo colisión con obstáculo
 			if (!obstacleCollisionHandled) {
 				let bounced = false;
-				if (checkCollision(ball, player1) && ball.dx < 0) { 
-					handlePaddleBounce(player1, playerVelocities.p1, 'vertical'); 
-					bounced = true; 
+				if (checkCollision(ball, player1) && ball.dx < 0) {
+					handlePaddleBounce(player1, playerVelocities.p1, 'vertical');
+					bounced = true;
 				}
-				if (!bounced && checkCollision(ball, player2) && ball.dx > 0) { 
-					handlePaddleBounce(player2, playerVelocities.p2, 'vertical'); 
-					bounced = true; 
+				if (!bounced && checkCollision(ball, player2) && ball.dx > 0) {
+					handlePaddleBounce(player2, playerVelocities.p2, 'vertical');
+					bounced = true;
 				}
 				if (gameMode === 'FOUR_PLAYERS') {
-					if (!bounced && checkCollision(ball, player3) && ball.dy < 0) { 
-						handlePaddleBounce(player3, playerVelocities.p3, 'horizontal'); 
-						bounced = true; 
+					if (!bounced && checkCollision(ball, player3) && ball.dy < 0) {
+						handlePaddleBounce(player3, playerVelocities.p3, 'horizontal');
+						bounced = true;
 					}
-					if (!bounced && checkCollision(ball, player4) && ball.dy > 0) { 
-						handlePaddleBounce(player4, playerVelocities.p4, 'horizontal'); 
+					if (!bounced && checkCollision(ball, player4) && ball.dy > 0) {
+						handlePaddleBounce(player4, playerVelocities.p4, 'horizontal');
 					}
 				}
 			}
@@ -405,42 +405,42 @@ export function initializePongGame(
 		function handlePaddleBounce(paddle: PaddleObject, paddleVelocity: number, orientation: 'vertical' | 'horizontal') {
 			const { ball } = gameObjects;
 			const currentSpeed = Math.sqrt(ball.dx ** 2 + ball.dy ** 2);
-		const speed = Math.min(currentSpeed * ACCELERATION_FACTOR, MAX_BALL_SPEED);
-	
-		if (orientation === 'vertical') {
+			const speed = Math.min(currentSpeed * ACCELERATION_FACTOR, MAX_BALL_SPEED);
+
+			if (orientation === 'vertical') {
 				const relativeImpact = (ball.y - (paddle.y + paddle.height / 2)) / (paddle.height / 2);
 				const bounceAngle = relativeImpact * MAX_BOUNCE_ANGLE;
-	
-			ball.dx = speed * Math.cos(bounceAngle) * (ball.dx > 0 ? -1 : 1);
+
+				ball.dx = speed * Math.cos(bounceAngle) * (ball.dx > 0 ? -1 : 1);
 				ball.dy = speed * Math.sin(bounceAngle);
 
-            ball.dy += paddleVelocity * PADDLE_INFLUENCE_FACTOR;
-	
-			ball.x = paddle.x + (ball.dx > 0 ? paddle.width + currentBallRadius : -currentBallRadius);
+				ball.dy += paddleVelocity * PADDLE_INFLUENCE_FACTOR;
+
+				ball.x = paddle.x + (ball.dx > 0 ? paddle.width + currentBallRadius : -currentBallRadius);
 			} else {
 				const relativeImpact = (ball.x - (paddle.x + paddle.width / 2)) / (paddle.width / 2);
 				const bounceAngle = relativeImpact * MAX_BOUNCE_ANGLE;
-	
-			ball.dy = speed * Math.cos(bounceAngle) * (ball.dy > 0 ? -1 : 1);
+
+				ball.dy = speed * Math.cos(bounceAngle) * (ball.dy > 0 ? -1 : 1);
 				ball.dx = speed * Math.sin(bounceAngle);
 
-            ball.dx += paddleVelocity * PADDLE_INFLUENCE_FACTOR;
-	
-			ball.y = paddle.y + (ball.dy > 0 ? paddle.height + currentBallRadius : -currentBallRadius);
-		}
+				ball.dx += paddleVelocity * PADDLE_INFLUENCE_FACTOR;
 
-        const finalSpeed = Math.sqrt(ball.dx**2 + ball.dy**2);
-        if(finalSpeed > MAX_BALL_SPEED) {
-            const ratio = MAX_BALL_SPEED / finalSpeed;
-            ball.dx *= ratio;
-            ball.dy *= ratio;
-	        }
+				ball.y = paddle.y + (ball.dy > 0 ? paddle.height + currentBallRadius : -currentBallRadius);
+			}
+
+			const finalSpeed = Math.sqrt(ball.dx ** 2 + ball.dy ** 2);
+			if (finalSpeed > MAX_BALL_SPEED) {
+				const ratio = MAX_BALL_SPEED / finalSpeed;
+				ball.dx *= ratio;
+				ball.dy *= ratio;
+			}
 		}
 
 		function handleScoring() {
 			const { ball, player1, player2, player3, player4 } = gameObjects;
-	
-		if (gameMode === 'FOUR_PLAYERS') {
+
+			if (gameMode === 'FOUR_PLAYERS') {
 				if ((ball.x - currentBallRadius < 0 && !player1.isAlive)) { ball.dx *= -1; ball.x = currentBallRadius; }
 				if ((ball.x + currentBallRadius > canvas.width && !player2.isAlive)) { ball.dx *= -1; ball.x = canvas.width - currentBallRadius; }
 				if ((ball.y - currentBallRadius < 0 && !player3.isAlive)) { ball.dy *= -1; ball.y = currentBallRadius; }
@@ -527,16 +527,16 @@ export function initializePongGame(
 
 		function draw() {
 			let bgColor = 'black';
-		let lineAndScoreColor = 'rgba(255, 255, 255, 0.75)';
-		let paddleColor = 'white';
-		let ballColor = 'white';
-		let obstacleColor = 'grey';
+			let lineAndScoreColor = 'rgba(255, 255, 255, 0.75)';
+			let paddleColor = 'white';
+			let ballColor = 'white';
+			let obstacleColor = 'grey';
 
-		context.clearRect(0, 0, canvas.width, canvas.height);
+			context.clearRect(0, 0, canvas.width, canvas.height);
 			context.fillStyle = bgColor;
 			context.fillRect(0, 0, canvas.width, canvas.height);
 
-				context.strokeStyle = lineAndScoreColor;
+			context.strokeStyle = lineAndScoreColor;
 			context.lineWidth = 5;
 			context.setLineDash([15, 15]);
 			context.beginPath();
@@ -582,22 +582,23 @@ export function initializePongGame(
 					}
 				}
 
-				drawTextWithSizing(displayPlayer1Name, 40, 60, 'left', canvas.width / 3);
-				drawTextWithSizing(displayPlayer2Name, canvas.width - 40, 60, 'right', canvas.width / 3);
+				context.fillStyle = lineAndScoreColor;
+				drawTextWithSizing(displayPlayer1Name, 40, 60, 'left', canvas.width / 3, lineAndScoreColor);
+				drawTextWithSizing(displayPlayer2Name, canvas.width - 40, 60, 'right', canvas.width / 3, lineAndScoreColor);
 
 				context.font = "48px 'Press Start 2P'";
 				context.textAlign = 'center';
 				context.fillStyle = lineAndScoreColor;
-			context.fillText(`${score.p1}`, canvas.width / 4, 120);
+				context.fillText(`${score.p1}`, canvas.width / 4, 120);
 				context.fillText(`${score.p2}`, (canvas.width / 4) * 3, 120);
 			}
 
-		if (currentMapConfig && currentMapConfig.obstacles && currentMapConfig.obstacles.length > 0) {
-			context.fillStyle = obstacleColor;
-			currentMapConfig.obstacles.forEach(obstacle => {
-				context.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-			});
-		}
+			if (currentMapConfig && currentMapConfig.obstacles && currentMapConfig.obstacles.length > 0) {
+				context.fillStyle = obstacleColor;
+				currentMapConfig.obstacles.forEach(obstacle => {
+					context.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+				});
+			}
 
 			const { player1: paddle1, player2: paddle2, player3, player4, ball } = gameObjects;
 			context.fillStyle = paddle1.isAlive ? paddleColor : '#555';
@@ -648,9 +649,9 @@ export function initializePongGame(
 				navigate('/login');
 				return;
 			}
-			const player_one_id = user.id;
+			const palyer1 = user.id;
 
-			let player_two_id: number | null = null;
+			let palyer2: number | null = null;
 			let match_type: string = 'local';
 			const opponentIdStr = localStorage.getItem('opponentId');
 
@@ -658,9 +659,9 @@ export function initializePongGame(
 				match_type = 'ia';
 				console.log(`Iniciando partida 1vAI`);
 			} else if (gameMode === 'TWO_PLAYERS' && opponentIdStr) {
-				player_two_id = parseInt(opponentIdStr, 10);
+				palyer2 = parseInt(opponentIdStr, 10);
 				match_type = 'friends';
-				console.log(`Iniciando partida 1v1 contra amigo ID: ${player_two_id}`);
+				console.log(`Iniciando partida 1v1 contra amigo ID: ${palyer2}`);
 			} else if (gameMode === 'TWO_PLAYERS' && !opponentIdStr) {
 				match_type = 'local';
 				console.log(`Iniciando partida local 2P (vs guess)`);
@@ -668,8 +669,8 @@ export function initializePongGame(
 
 			if (gameMode !== 'FOUR_PLAYERS') {
 				const matchData = {
-					player_one_id: player_one_id,
-					...(player_two_id !== null && { player_two_id: player_two_id }),
+					palyer1: palyer1,
+					...(palyer2 !== null && { palyer2: palyer2 }),
 					game: 'pong',
 					match_type: match_type,
 					match_status: 'playing',
@@ -753,7 +754,7 @@ export function initializePongGame(
 					player_one_points: score.p1,
 					player_two_points: score.p2
 				};
-			console.log(`Enviando resultado final para Match ID ${matchId}:`, finalData);
+				console.log(`Enviando resultado final para Match ID ${matchId}:`, finalData);
 
 				try {
 					const response = await authenticatedFetch(`/api/match/update/${matchId}`, {
@@ -761,15 +762,15 @@ export function initializePongGame(
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify(finalData),
 					});
-	                const responseData = await response.json();
-				if (!response.ok) {
-	                    console.error("Server response:", responseData);
-					throw new Error(responseData.error || 'Failed to update match on server.');
+					const responseData = await response.json();
+					if (!response.ok) {
+						console.error("Server response:", responseData);
+						throw new Error(responseData.error || 'Failed to update match on server.');
 					}
-	
-                console.log("Respuesta de actualización de partida:", responseData);
 
-				const { playerOne: updatedPlayerOne, playerTwo: updatedPlayerTwo } = responseData;
+					console.log("Respuesta de actualización de partida:", responseData);
+
+					const { playerOne: updatedPlayerOne, playerTwo: updatedPlayerTwo } = responseData;
 					const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
 					if (updatedPlayerOne && currentUser.id === updatedPlayerOne.id) {
@@ -777,12 +778,12 @@ export function initializePongGame(
 						console.log('ELO actualizado en localStorage para Jugador 1:', updatedPlayerOne.elo);
 					} else if (updatedPlayerTwo && currentUser.id === updatedPlayerTwo.id) {
 						localStorage.setItem('user', JSON.stringify(updatedPlayerTwo));
- 						console.log('ELO actualizado en localStorage para Jugador 2:', updatedPlayerTwo.elo);
-                } else if (updatedPlayerOne || updatedPlayerTwo) {
-                     console.log("ELO actualizado, pero no para el usuario actual.");
+						console.log('ELO actualizado en localStorage para Jugador 2:', updatedPlayerTwo.elo);
+					} else if (updatedPlayerOne || updatedPlayerTwo) {
+						console.log("ELO actualizado, pero no para el usuario actual.");
 					}
-	
-			} catch (error) {
+
+				} catch (error) {
 					console.error("Error updating match and user ELO:", error);
 				}
 			} else {
