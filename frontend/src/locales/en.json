@@ -102,6 +102,18 @@
 	"paddleSpeed": "Paddle Speed",
 	"ballSize": "Ball Size",
 	"paddleLength": "Paddle Length",
+	"tournamentId": "Tournament ID:",
+	"game": "Game",
+	"tournamentStatus": "Tournament Status",
+	"loading": "Loading",
+	"bracketDisplayPending": "Bracket display pending",
+	"returnToMainMenu": "Return to Main Menu",
+	"tournamentScores": "Tournament Scores",
+	"nextMatch": "Next Match",
+	"playMatch": "Play Match",
+	"tournamentFinished": "Tournament Finished",
+	"theWinnerIs": "The winner is",
+	"waitingForNextPlayers": "Waiting for next players to be defined",
 
 	"img": {
 		"login": "/assets/en/login.png",

@@ -89,26 +89,26 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
 	// --- Renderizado Básico ---
 	appElement.innerHTML = `
         <div class="h-screen flex flex-col items-center p-4 text-white font-press-start">
-            <h1 class="text-3xl mb-4">Torneo ID: ${tournamentId}</h1>
-            <h2 class="text-2xl mb-8">Juego: ${gameType === 'pong' ? 'Pong' : 'Tic Tac Toe'}</h2>
+            <h1 class="text-black text-3xl mb-4">${i18next.t('tournamentId')} ${tournamentId}</h1>
+            <h2 class="text-black text-2xl mb-8">${i18next.t('game')}: ${gameType === 'pong' ? 'Pong' : 'Tic Tac Toe'}</h2>
 
 
 			<div class="flex flex-col items-center w-full">
 		<main class="flex flex-col items-center w-full">
 			<div class="mb-8 w-full max-w-4xl bg-gray-800 p-4 rounded border-2 border-cyan-400">
 				<div id="tournament-status" class="text-lg">
-					Estado del Torneo: <span id="tournament-status-text">Cargando...</span>
+					${i18next.t('tournamentStatus')}: <span id="tournament-status-text">${i18next.t('loading')}...</span>
 				
 					</div>
 			</div>
 			<div id="pong">
 			</div>
             <div id="bracket-container" class="w-full max-w-6xl text-center">
-                <p class="text-gray-400">(Visualización del bracket pendiente)</p>
+                <p class="text-gray-400">(${i18next.t('bracketDisplayPending')})</p>
                 </div>
 
             <button id="back-to-start" class="mt-8 px-6 py-3 bg-gray-600 rounded hover:bg-gray-500">
-                ${i18next.t('return')} al Menú Principal
+                ${i18next.t('returnToMainMenu')}
             </button>
 		</main>
 	  </div>
@@ -146,7 +146,7 @@ async function renderTournamentScores(appElement: HTMLElement, tournamentMatchs:
 
 	appElement.innerHTML = `
 		<div class="puntuaciones-container">
-			<h3 class="text-xl mb-4">Puntuaciones del Torneo:</h3>
+			<h3 class="text-white text-xl mb-4">${i18next.t('tournamentScores')}:</h3>
 			<ul class="list-disc list-inside space-y-1">
 				${tournamentMatchs.map(match => `<li>${match.player_one?.displayName || 'N/A'} vs ${match.player_two?.displayName || 'N/A'} - ${match.player_one_points} : ${match.player_two_points}</li>`).join('')}
 			</ul>
@@ -190,9 +190,9 @@ async function manageTournamentState(participants: ParticipantInfo[]) {
 	if (nextMatch) {
 		pongContainer.innerHTML = `
             <div class="text-center">
-                <h3 class="text-black text-2xl mb-4">Próxima Partida</h3>
+                <h3 class="text-black text-2xl mb-4">${i18next.t('nextMatch')}</h3>
                 <p class="text-black text-xl mb-6">${nextMatch.player_one!.displayName} vs ${nextMatch.player_two!.displayName}</p>
-                <button id="play-match-btn" class="px-6 py-3 bg-green-600 rounded hover:bg-green-500 transition-colors">Jugar Partida</button>
+                <button id="play-match-btn" class="px-6 py-3 bg-green-600 rounded hover:bg-green-500 transition-colors">${i18next.t('playMatch')}</button>
             </div>
         `;
 
@@ -208,13 +208,13 @@ async function manageTournamentState(participants: ParticipantInfo[]) {
 			const winner = finalMatch.player_one_points > finalMatch.player_two_points ? finalMatch.player_one : finalMatch.player_two;
 			pongContainer.innerHTML = `
                 <div class="text-center">
-                    <h2 class="text-4xl text-yellow-400 mb-4">🏆 ¡Torneo Finalizado! 🏆</h2>
-                    <p class="text-2xl">El ganador es:</p>
+                    <h2 class="text-4xl text-yellow-400 mb-4">🏆 ${i18next.t('tournamentFinished')}! 🏆</h2>
+                    <p class="text-2xl">${i18next.t('theWinnerIs')}:</p>
                     <p class="text-3xl font-bold mt-2">${winner?.displayName || 'Desconocido'}</p>
                 </div>
             `;
 		} else {
-			pongContainer.innerHTML = `<p>Esperando a que se definan los próximos jugadores...</p>`;
+			pongContainer.innerHTML = `<p>${i18next.t('waitingForNextPlayers')}...</p>`;
 		}
 	}
 }

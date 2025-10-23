@@ -102,6 +102,18 @@
 	"paddleSpeed": "Velocidad Pala",
 	"ballSize": "Tamaño Bola",
 	"paddleLength": "Longitud Pala",
+	"tournamentId": "Torneo ID:",
+	"game": "Juego",
+	"tournamentStatus": "Estado del Torneo",
+	"loading": "Cargando",
+	"bracketDisplayPending": "Visualización del bracket pendiente",
+	"returnToMainMenu": "Volver al Menú Principal",
+	"tournamentScores": "Puntuaciones del Torneo",
+	"nextMatch": "Próxima Partida",
+	"playMatch": "Jugar Partida",
+	"tournamentFinished": "¡Torneo Finalizado!",
+	"theWinnerIs": "El ganador es",
+	"waitingForNextPlayers": "Esperando a que se definan los próximos jugadores",
 
 	"img": {
 		"login": "/assets/es/login_es.png",
