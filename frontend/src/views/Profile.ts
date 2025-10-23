@@ -415,13 +415,13 @@ function showDisable2FAModal() {
 	const modalContent = document.getElementById('2fa-modal-content')!;
 
 	modalContent.innerHTML = `
-		<h3 class="text-2xl font-bold mb-4">${i18next.t('disable2FA')}</h3>
-		<p class="mb-4">${i18next.t('confirm2faDisable')}</p>
+		<h3 class="text-white text-2xl font-bold mb-4">${i18next.t('disable2FA')}</h3>
+		<p class="text-white mb-4">${i18next.t('confirm2faDisable')}</p>
 
-		<label>${i18next.t('password')}</label>
+		<label class="text-white">${i18next.t('password')}</label>
 		<input id="password-input" type="password" class="w-full bg-gray-700 p-2 rounded mt-1 mb-3">
 
-		<label>2FA Code</label>
+		<label class="text-white">2FA Code</label>
 		<input id="2fa-code-input" class="w-full bg-gray-700 p-2 rounded text-center text-2xl tracking-[0.5em] mt-1" placeholder="000000" maxlength="6">
 
 		<div class="flex gap-4 mt-4">
