@@ -1,5 +1,3 @@
-import { DifficultyLevel, DifficultyConfig } from './types';
-
 // --- CONSTANTES PARA MODO 1 VS 1 Y 2 JUGADORES ---
 export const PADDLE_LENGTH_CLASSIC = 120;
 export const PADDLE_SPEED_CLASSIC = 10;
