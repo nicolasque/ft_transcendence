@@ -20,10 +20,10 @@ class TournamentController {
 
 			await this.createBracket(tournament, participants);
 
-			res.status(201).send({ message: 'Torneo creado con éxito', tournament });
+			return res.status(201).send({ message: 'Torneo creado con éxito', tournament });
 		} catch (error) {
 			console.error('Error creando el torneo:', error);
-			res.status(500).send({ error: error.message });
+			return res.status(500).send({ error: error.message });
 		}
 	};
 
@@ -92,10 +92,10 @@ class TournamentController {
 				{ where: { id: id } }
 			);
 
-			res.status(200).send({ message: 'Torneo finalizado con éxito', winnerId: winnerId });
+			return res.status(200).send({ message: 'Torneo finalizado con éxito', winnerId: winnerId });
 		} catch (error) {
 			console.error('Error finalizando el torneo:', error);
-			res.status(500).send({ error: error.message });
+			return res.status(500).send({ error: error.message });
 		}
 	}
 }

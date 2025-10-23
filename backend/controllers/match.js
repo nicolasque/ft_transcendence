@@ -54,16 +54,16 @@ class MatchControler {
 			const matchModel = await MatchModel.create(matchData);
 
 			if (matchModel) {
-				res.status(200).send({ status: true, message: 'Partida creada correctamente', id: matchModel.id });
+				return res.status(200).send({ status: true, message: 'Partida creada correctamente', id: matchModel.id });
 			} else {
-				res.status(500).send({ error: 'No se pudo crear la partida.' });
+				return res.status(500).send({ error: 'No se pudo crear la partida.' });
 			}
 		} catch (e) {
 			console.error('Error en createMatch:', e);
 			if (e.name === 'SequelizeValidationError') {
 				return res.status(400).send({ error: 'Datos inválidos para crear la partida.', details: e.errors });
 			}
-			res.status(500).send({ error: e.message || 'Error interno del servidor.' });
+			return res.status(500).send({ error: e.message || 'Error interno del servidor.' });
 		};
 	}
 
@@ -98,10 +98,10 @@ class MatchControler {
 				order: [['createdAt', 'DESC']]
 			});
 
-			res.status(200).send(lista);
+			return res.status(200).send(lista);
 		} catch (e) {
 			console.error("Error en getAllMatch:", e);
-			res.status(500).send({ error: e.message });
+			return res.status(500).send({ error: e.message });
 		}
 	}
 
@@ -160,7 +160,7 @@ class MatchControler {
 
 		} catch (e) {
 			console.error("Error al actualizar partida y ELO:", e);
-			res.status(500).send({ error: e.message });
+			return res.status(500).send({ error: e.message });
 		}
 	}
 }

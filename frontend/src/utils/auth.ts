@@ -45,6 +45,7 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
 
     let response = await fetch(url, { ...options, headers });
 
+    // ✅ Manejo mejorado del token expirado
     if (response.status === 401) 
     {
         console.warn("Access token expired or invalid. Attempting to refresh...");
@@ -54,6 +55,14 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
             console.log("Retrying the request with the new token.");
             headers.set('Authorization', `Bearer ${newAccessToken}`);
             response = await fetch(url, { ...options, headers });
+            
+            // ✅ Si después del refresh sigue fallando, limpiar y redirigir
+            if (response.status === 401) {
+                console.error("Token refresh succeeded but request still failed. Logging out.");
+                localStorage.clear();
+                navigate('/login');
+                throw new Error('Session has expired. Please log in again.');
+            }
         }
         else
         {
@@ -63,6 +72,7 @@ export async function authenticatedFetch(url: string, options: RequestInit = {})
             throw new Error('Session has expired. Please log in again.');
         }
     }
+    
     return response;
 }
 

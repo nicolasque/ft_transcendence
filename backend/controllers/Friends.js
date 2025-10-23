@@ -9,9 +9,9 @@ class FriendControler {
 		try {
 			const friendModel = await FriendModel.create(req.body);
 			if (friendModel)
-				res.status(200).send({ status: true, message: 'Se ha creado la solicitud de amistad' });
+				return res.status(200).send({ status: true, message: 'Se ha creado la solicitud de amistad' });
 		}
-		catch (e) { res.status(500).send({ error: e }) };
+		catch (e) { return res.status(500).send({ error: e }) };
 	}
 
 	async acceptFriend(req, res) {
@@ -42,25 +42,25 @@ class FriendControler {
 				state: 'accepted'
 			});
 
-			res.status(200).send({
+			return res.status(200).send({
 				status: true,
 				message: 'Solicitud de amistad aceptada',
 				data: friendRequest
 			});
 		}
 		catch (e) {
-			res.status(500).send({ error: e.message });
+			return res.status(500).send({ error: e.message });
 		}
 	}
 
 	async getAll(req, res) {
 		try {
-			const where = {...req.query};
+			const where = { ...req.query };
 
-			const lista = await FriendModel.findAll({where});
-			res.status(200).send(lista);
-		}catch (e) {
-			res.status(500).send({ error: e.message });
+			const lista = await FriendModel.findAll({ where });
+			return res.status(200).send(lista);
+		} catch (e) {
+			return res.status(500).send({ error: e.message });
 		}
 	}
 
@@ -86,10 +86,10 @@ class FriendControler {
 				attributes: { exclude: ['password', 'email', 'twofa_secret'] }
 			});
 
-			res.status(200).send(friendDetails);
+			return res.status(200).send(friendDetails);
 		} catch (e) {
 
-			res.status(500).send({ error: e.message });
+			return res.status(500).send({ error: e.message });
 		}
 	}
 	async getFriendRequests(req, res) {
@@ -119,9 +119,9 @@ class FriendControler {
 			}));
 
 			// 3. Envía la lista de objetos completa al frontend
-			res.status(200).send(responseData);
+			return res.status(200).send(responseData);
 		} catch (e) {
-			res.status(500).send({ error: e.message });
+			return res.status(500).send({ error: e.message });
 		}
 	}
 
@@ -182,12 +182,12 @@ class FriendControler {
 			} else if (friendship.state === 'accepted') {
 				message = 'Amistad eliminada';
 			}
-			res.status(200).send({
+			return res.status(200).send({
 				status: true,
 				message: message
 			});
 		} catch (e) {
-			res.status(500).send({ error: e.message });
+			return res.status(500).send({ error: e.message });
 		}
 	}
 
@@ -206,7 +206,7 @@ class FriendControler {
 			Object.assign(friendModel, req.body);
 			await friendModel.save();
 
-			const plain = friendModel.get({plain:true});
+			const plain = friendModel.get({ plain: true });
 
 			return res.status(200).send(plain);
 		} catch {

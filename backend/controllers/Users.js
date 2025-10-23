@@ -16,10 +16,10 @@ class UserControler {
 		try {
 			const userModel = await UserModel.create(req.body);
 			if (userModel)
-				res.status(200).send({ status: true, id: userModel.id });
+				return res.status(200).send({ status: true, id: userModel.id });
 		}
 		catch (error) {
-			res.status(500).send({ error: error });
+			return res.status(500).send({ error: error });
 		}
 	}
 
@@ -28,10 +28,10 @@ class UserControler {
 			const where = { ...req.query };
 
 			const lista = await UserModel.findAll({ where, attributes: { exclude: ['password'] } });
-			res.status(200).send(lista);
+			return res.status(200).send(lista);
 
 		} catch (error) {
-			res.status(500).send({ error: error });
+			return res.status(500).send({ error: error });
 		}
 	}
 
@@ -51,16 +51,15 @@ class UserControler {
 				});
 			}
 
-			if (userModel)
-			{
+			if (userModel) {
 				const userData = userModel.get({ plain: true });
-	
+
 				if (userData.avatar && userData.avatar !== 'placeholder.png') {
 					userData.avatar_url = `/uploads/avatars/${userData.avatar}`;
 				} else {
 					userData.avatar_url = null;
 				}
-	
+
 				delete userData.password;
 				delete userData.twofa_secret;
 				return res.status(200).send(userData);
@@ -102,12 +101,12 @@ class UserControler {
 			const { id } = req.params;
 			const userModel = await UserModel.destroy({ where: { id } });
 			if (userModel)
-				res.status(200).send({ status: true });
+				return res.status(200).send({ status: true });
 			else {
-				res.status(404).send({ message: 'Registro no encontrado', });
+				return res.status(404).send({ message: 'Registro no encontrado', });
 			}
 		} catch (error) {
-			res.status(500).send({ error: error });
+			return res.status(500).send({ error: error });
 		}
 	}
 
@@ -132,25 +131,25 @@ class UserControler {
 			await pump(data.file, fs.createWriteStream(uploadPath));
 			console.log(`Archivo guardado en: ${uploadPath}`);
 
-            const userId = req.user.id;
-            const user = await UserModel.findByPk(userId);
-            if (!user) {
+			const userId = req.user.id;
+			const user = await UserModel.findByPk(userId);
+			if (!user) {
 				await fs.unlink(uploadPath);
-                return res.status(404).send({ message: 'Usuario no encontrado.' });
-            }
-            user.avatar = newFilename;
-            await user.save();
-            console.log(`Avatar actualizado en BD para user ${userId}: ${newFilename}`);
+				return res.status(404).send({ message: 'Usuario no encontrado.' });
+			}
+			user.avatar = newFilename;
+			await user.save();
+			console.log(`Avatar actualizado en BD para user ${userId}: ${newFilename}`);
 
-            const avatarUrl = `/uploads/avatars/${newFilename}`;
-            res.status(200).send({
-                message: 'Avatar actualizado correctamente.',
-                avatarUrl: avatarUrl
-            });
+			const avatarUrl = `/uploads/avatars/${newFilename}`;
+			return res.status(200).send({
+				message: 'Avatar actualizado correctamente.',
+				avatarUrl: avatarUrl
+			});
 
 		} catch (error) {
 			console.error('Error al procesar la subida del avatar:', error);
-			res.status(500).send({ error: 'Error interno al procesar el archivo.' });
+			return res.status(500).send({ error: 'Error interno al procesar el archivo.' });
 		}
 	}
 
