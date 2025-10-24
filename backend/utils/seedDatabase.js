@@ -45,10 +45,8 @@ async function seedDatabase() {
 			{ username: 'guest15', email: 'guest15@guest.com', fullname: 'Invitado 15', password: '1234', is_guest: true },
 
 
-			{ username: 'ia', email: 'ia@test.com', fullname: 'IA', password: '1234' },
-			{ username: 'guess', email: 'guess@test.com', fullname: 'GUESS', password: '1234' }
-
-
+			{ username: 'ia', email: 'ia@test.com', fullname: 'IA', password: '1234', is_guest: true },
+			{ username: 'guess', email: 'guess@test.com', fullname: 'GUESS', password: '1234', is_guest: true }
 
 		];
 

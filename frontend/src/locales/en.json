@@ -102,6 +102,7 @@
 	"paddleSpeed": "Paddle Speed",
 	"ballSize": "Ball Size",
 	"paddleLength": "Paddle Length",
+	"dontHaveAcount": "If you dont have an acount singup",
 
 	"img": {
 		"login": "/assets/en/login.png",

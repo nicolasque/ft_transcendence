@@ -102,6 +102,8 @@
 	"paddleSpeed": "Velocidad Pala",
 	"ballSize": "Tamaño Bola",
 	"paddleLength": "Longitud Pala",
+	"dontHaveAcount": "Si no tienes una cuenta crea una",
+
 
 	"img": {
 		"login": "/assets/es/login_es.png",

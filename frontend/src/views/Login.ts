@@ -6,8 +6,7 @@ let isAwaiting2FA = false;
 let tempUsername = '';
 let tempPassword = '';
 
-async function handleLogin(event: Event): Promise<void>
-{
+async function handleLogin(event: Event): Promise<void> {
 	event.preventDefault();
 
 	const usernameInput = document.getElementById('username') as HTMLInputElement;
@@ -15,26 +14,22 @@ async function handleLogin(event: Event): Promise<void>
 	tempUsername = usernameInput.value;
 	tempPassword = passwordInput.value;
 
-	try
-	{
+	try {
 		const response = await fetch('/api/auth/login', {
 			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({ username: tempUsername,password: tempPassword })
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ username: tempUsername, password: tempPassword })
 		});
 
 		const result = await response.json();
-		if (response.ok)
-		{
+		if (response.ok) {
 			localStorage.setItem('access_token', result.access_token);
 			localStorage.setItem('refresh_token', result.refresh_token);
-            localStorage.setItem('user', JSON.stringify(result.user));
+			localStorage.setItem('user', JSON.stringify(result.user));
 			navigate('/start');
 		}
-		else
-		{
-			if (response.status === 403 && result.requires_2fa === true)
-			{
+		else {
+			if (response.status === 403 && result.requires_2fa === true) {
 				console.log(i18next.t('2faRequired'));
 				isAwaiting2FA = true;
 				renderLogin(document.getElementById('app') as HTMLElement);
@@ -43,66 +38,58 @@ async function handleLogin(event: Event): Promise<void>
 				throw new Error(result.message || i18next.t('loginError'));
 		}
 	}
-	catch (error)
-	{
+	catch (error) {
 		alert(`Error: ${(error as Error).message}`);
 		tempUsername = '';
 		tempPassword = '';
 	}
 }
 
-async function handle2FAVerification(event: Event): Promise<void>
-{
-    event.preventDefault();
+async function handle2FAVerification(event: Event): Promise<void> {
+	event.preventDefault();
 
-    const twoFACodeInput = document.getElementById('2fa-code') as HTMLInputElement;
-    const code = twoFACodeInput.value;
-    if (!code)
-	{
-        alert(i18next.t('enter6DigitCode'));
-        return;
-    }
+	const twoFACodeInput = document.getElementById('2fa-code') as HTMLInputElement;
+	const code = twoFACodeInput.value;
+	if (!code) {
+		alert(i18next.t('enter6DigitCode'));
+		return;
+	}
 
-    try
-	{
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: tempUsername, password: tempPassword, twofa_code: code })
-        });
+	try {
+		const response = await fetch('/api/auth/login', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ username: tempUsername, password: tempPassword, twofa_code: code })
+		});
 
-        const result = await response.json();
-        if (response.ok)
-		{
-            localStorage.setItem('access_token', result.access_token);
-            localStorage.setItem('refresh_token', result.refresh_token);
-            localStorage.setItem('user', JSON.stringify(result.user));
-            tempUsername = '';
-            tempPassword = '';
-            isAwaiting2FA = false;
-            navigate('/start');
-        }
+		const result = await response.json();
+		if (response.ok) {
+			localStorage.setItem('access_token', result.access_token);
+			localStorage.setItem('refresh_token', result.refresh_token);
+			localStorage.setItem('user', JSON.stringify(result.user));
+			tempUsername = '';
+			tempPassword = '';
+			isAwaiting2FA = false;
+			navigate('/start');
+		}
 		else
-            throw new Error(result.message || i18next.t('invalid2faCode'));
-    }
-	catch (error)
-	{
-        alert(`Error: ${(error as Error).message}`);
-        isAwaiting2FA = false;
-        tempUsername = '';
-        tempPassword = '';
-        renderLogin(document.getElementById('app') as HTMLElement);
-    }
+			throw new Error(result.message || i18next.t('invalid2faCode'));
+	}
+	catch (error) {
+		alert(`Error: ${(error as Error).message}`);
+		isAwaiting2FA = false;
+		tempUsername = '';
+		tempPassword = '';
+		renderLogin(document.getElementById('app') as HTMLElement);
+	}
 }
 
 
-export function renderLogin(appElement: HTMLElement): void
-{
-    if (!appElement)
-        return;
+export function renderLogin(appElement: HTMLElement): void {
+	if (!appElement)
+		return;
 
-    if (isAwaiting2FA)
-	{
+	if (isAwaiting2FA) {
 		appElement.innerHTML = `
 		<div class="h-screen flex flex-col items-center justify-start md:justify-center p-4 md:p-16 overflow-y-auto">
 			<div class="w-full flex justify-center">
@@ -126,11 +113,10 @@ export function renderLogin(appElement: HTMLElement): void
 		</div>
 		`;
 
-        document.getElementById('homeButton')?.addEventListener('click', () => { isAwaiting2FA = false; navigate('/'); });
-        document.getElementById('2faForm')?.addEventListener('submit', handle2FAVerification);
-    }
-    else
-	{
+		document.getElementById('homeButton')?.addEventListener('click', () => { isAwaiting2FA = false; navigate('/'); });
+		document.getElementById('2faForm')?.addEventListener('submit', handle2FAVerification);
+	}
+	else {
 		appElement.innerHTML = `
 		<div class="h-screen flex flex-col items-center justify-start md:justify-center p-4 md:p-16 overflow-y-auto">
 			<div class="w-full flex justify-center">
@@ -138,7 +124,7 @@ export function renderLogin(appElement: HTMLElement): void
 					<img src="/assets/logo.gif" alt="Game Logo" class="w-full max-w-sm md:max-w-5xl mt-20 md:mt-28">
 				</button>
 			</div>
-			<div class="w-full md:max-w-4xl mt-10 md:mt-40">
+			<div class="w-full md:max-w-4xl mt-10 md:mt-40 font-press-start">
 				<form id="loginForm" class="bg-gray-800 bg-opacity-50 shadow-md rounded-xl px-6 py-8 md:px-16 md:pt-12 md:pb-16 mb-8">
 					<div class="mb-6 md:mb-9">
 						<label class="block text-white text-lg md:text-2xl font-bold mb-2 md:mb-4" for="username">${i18next.t('username')}</label>
@@ -153,14 +139,17 @@ export function renderLogin(appElement: HTMLElement): void
                             <img src="${i18next.t('img.login')}" alt="${i18next.t('login')}" class="absolute inset-0 w-full h-full object-contain drop-shadow-lg hover:drop-shadow-xl">
                         </button>
 					</div>
+				<div class="mt-6 text-center text-sm text-orange-400 italic">
+                    <a href="./register" class="hover:text-orange-300 transition-colors font-press-start">${i18next.t('dontHaveAcount')}</a>
+                </div>
 				</form>
 			</div>
 		</div>
 		`;
 
-        document.getElementById('homeButton')?.addEventListener('click', () => navigate('/'));
-        document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
-    }
+		document.getElementById('homeButton')?.addEventListener('click', () => navigate('/'));
+		document.getElementById('loginForm')?.addEventListener('submit', handleLogin);
+	}
 
-    playTrack('/assets/After_Dark.mp3');
+	playTrack('/assets/After_Dark.mp3');
 }

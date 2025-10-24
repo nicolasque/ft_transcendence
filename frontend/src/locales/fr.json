@@ -102,6 +102,8 @@
 	"paddleSpeed": "Vitesse Raquette",
 	"ballSize": "Taille Balle",
 	"paddleLength": "Longueur Raquette",
+	"dontHaveAcount": "Si vous n'avez pas encore de compte, créez-en un.",
+
 
 	"img": {
 		"login": "/assets/fr/login_fr.png",
