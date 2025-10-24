@@ -114,122 +114,122 @@ function renderParticipantBoxes(count: number, container: HTMLElement, currentUs
 }
 
 function handleParticipantTypeChange(event: Event) {
-	const target = event.target as HTMLInputElement;
-	const index = parseInt(target.dataset.index || '0');
-	const isGuest = target.value === 'guest';
-	const box = target.closest('.participant-box') as HTMLElement;
+    const target = event.target as HTMLInputElement;
+    const index = parseInt(target.dataset.index || '0');
+    const isGuest = target.value === 'guest';
+    const box = target.closest('.participant-box') as HTMLElement;
     const participantsContainer = document.getElementById('participants-container')!;
 	const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
 
-	if (isGuest) {
-		const assignedGuestIds = new Set(participants.map(p => p?.is_guest ? p.id : null).filter(id => id !== null));
-		const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
+    if (isGuest) {
+        const assignedGuestIds = new Set(participants.map(p => p?.is_guest ? p.id : null).filter(id => id !== null));
+        const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
 
-		if (nextAvailableGuest) {
-			participants[index] = {
-				...nextAvailableGuest,
-				isGuest: true,
-				is_guest: true,
-				guestAlias: `guest${index}`
-			};
-			renderParticipantBoxes(participants.length, participantsContainer, currentUser);
-		} else {
-			alert(i18next.t('notEnoughGuests'));
-			(target as HTMLInputElement).checked = false;
-			const friendRadio = box.querySelector(`input[name="participant-${index}-type"][value="friend"]`) as HTMLInputElement;
-			if (friendRadio) friendRadio.checked = true;
+        if (nextAvailableGuest) {
+            participants[index] = {
+                ...nextAvailableGuest,
+                isGuest: true,
+                is_guest: true,
+                guestAlias: `guest${index}`
+            };
+            renderParticipantBoxes(participants.length, participantsContainer, currentUser);
+        } else {
+            alert(i18next.t('notEnoughGuests'));
+            (target as HTMLInputElement).checked = false;
+            const friendRadio = box.querySelector(`input[name="participant-${index}-type"][value="friend"]`) as HTMLInputElement;
+            if (friendRadio) friendRadio.checked = true;
             handleParticipantTypeChange({target: friendRadio} as unknown as Event);
-		}
-	} else { 
-		participants[index] = null;
+        }
+    } else { 
+        participants[index] = null;
         document.getElementById(`friend-selector-${index}`)?.classList.remove('hidden');
-		document.getElementById(`guest-alias-input-${index}`)?.classList.add('hidden');
-	}
+        document.getElementById(`guest-alias-input-${index}`)?.classList.add('hidden');
+    }
 }
 
 function handleFriendSelectionChange(event: Event) {
-	const selectElement = event.target as HTMLSelectElement;
-	const index = parseInt(selectElement.dataset.index || '0');
-	const selectedFriendId = parseInt(selectElement.value);
-	const participantsContainer = document.getElementById('participants-container')!;
-	const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+    const selectElement = event.target as HTMLSelectElement;
+    const index = parseInt(selectElement.dataset.index || '0');
+    const selectedFriendId = parseInt(selectElement.value);
+    const participantsContainer = document.getElementById('participants-container')!;
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
-	const isAlreadySelected = participants.some((p, i) => i !== index && p?.id === selectedFriendId && !p.is_guest);
-	if (isAlreadySelected) {
-		alert(i18next.t('noDuplicateParticipants'));
-		selectElement.value = "";
-		participants[index] = null;
-		return;
-	}
+    const isAlreadySelected = participants.some((p, i) => i !== index && p?.id === selectedFriendId && !p.is_guest);
+    if (isAlreadySelected) {
+        alert(i18next.t('noDuplicateParticipants'));
+        selectElement.value = "";
+        participants[index] = null;
+        return;
+    }
 
-	if (selectedFriendId) {
-		const selectedFriend = allFriends.find(f => f.id === selectedFriendId);
-		participants[index] = selectedFriend ? { ...selectedFriend, isGuest: false, is_guest: false } : null;
-	} else {
-		participants[index] = null;
-	}
+    if (selectedFriendId) {
+        const selectedFriend = allFriends.find(f => f.id === selectedFriendId);
+        participants[index] = selectedFriend ? { ...selectedFriend, isGuest: false, is_guest: false } : null;
+    } else {
+        participants[index] = null;
+    }
 
-	renderParticipantBoxes(participants.length, participantsContainer, currentUser);
+    renderParticipantBoxes(participants.length, participantsContainer, currentUser);
 }
 
 function handleGuestAliasChange(event: Event) {
-	const inputElement = event.target as HTMLInputElement;
-	const index = parseInt(inputElement.dataset.index || '0');
-	const alias = inputElement.value.trim();
+    const inputElement = event.target as HTMLInputElement;
+    const index = parseInt(inputElement.dataset.index || '0');
+    const alias = inputElement.value.trim();
 
-	if (participants[index] && participants[index]?.is_guest) {
-		participants[index]!.guestAlias = alias || `guest${index}`;
-	}
+    if (participants[index] && participants[index]?.is_guest) {
+        participants[index]!.guestAlias = alias || `guest${index}`;
+    }
 }
 
 export async function renderTournament(appElement: HTMLElement): Promise<void> {
-	if (!appElement) return;
+    if (!appElement) return;
 
-	const currentUser: User | null = JSON.parse(localStorage.getItem('user') || 'null');
-	if (!currentUser) {
-		navigate('/login');
-		return;
-	}
-	currentUser.isGuest = false;
-	currentUser.is_guest = false;
+    const currentUser: User | null = JSON.parse(localStorage.getItem('user') || 'null');
+    if (!currentUser) {
+        navigate('/login');
+        return;
+    }
+    currentUser.isGuest = false;
+    currentUser.is_guest = false;
 
-	try {
-		[allFriends, availableGuests] = await Promise.all([
-			fetchFriends(),
-			fetchGuests()
-		]);
-		if (availableGuests.length === 0) {
-			console.warn("Advertencia: No se encontraron usuarios guest disponibles en la base de datos.");
-		}
-	} catch (error) {
-		console.error("Error crítico cargando datos iniciales:", error);
-		appElement.innerHTML = `<div class="text-red-500 p-4">${(error as Error).message}. Por favor, recarga la página.</div>`;
-		return;
-	}
+    try {
+        [allFriends, availableGuests] = await Promise.all([
+            fetchFriends(),
+            fetchGuests()
+        ]);
+        if (availableGuests.length === 0) {
+            console.warn("Advertencia: No se encontraron usuarios guest disponibles en la base de datos.");
+        }
+    } catch (error) {
+        console.error("Error crítico cargando datos iniciales:", error);
+        appElement.innerHTML = `<div class="text-red-500 p-4">${(error as Error).message}. Por favor, recarga la página.</div>`;
+        return;
+    }
 
-	const initialCount = participants.length > 1 ? participants.length : 4;
+    const initialCount = participants.length > 1 ? participants.length : 4;
 
-	if (!participants[0] || participants[0].id !== currentUser.id) {
-		participants = new Array(initialCount).fill(null);
-		participants[0] = { ...currentUser, isGuest: false, is_guest: false };
+    if (!participants[0] || participants[0].id !== currentUser.id) {
+        participants = new Array(initialCount).fill(null);
+        participants[0] = { ...currentUser, isGuest: false, is_guest: false };
 
-		const assignedGuestIds = new Set<number>();
-		for (let i = 1; i < initialCount; i++) {
-			const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
-			if (nextAvailableGuest) {
-				participants[i] = {
-					...nextAvailableGuest,
-					isGuest: true,
-					is_guest: true,
-					guestAlias: `guest${i}`
-				};
-				assignedGuestIds.add(nextAvailableGuest.id);
-			}
-		}
-	}
+        const assignedGuestIds = new Set<number>();
+        for (let i = 1; i < initialCount; i++) {
+            const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
+            if (nextAvailableGuest) {
+                participants[i] = {
+                    ...nextAvailableGuest,
+                    isGuest: true,
+                    is_guest: true,
+                    guestAlias: `guest${i}`
+                };
+                assignedGuestIds.add(nextAvailableGuest.id);
+            }
+        }
+    }
 
-	appElement.innerHTML = `
+    appElement.innerHTML = `
     <div class="h-screen flex flex-col items-center p-4 md:p-8 overflow-y-auto font-press-start text-white">
         <div class="w-full flex justify-center mb-8 flex-shrink-0">
              <button id="homeButton" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
@@ -267,136 +267,160 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
     </div>
     `;
 
-	playTrack('/assets/Techno_Syndrome.mp3');
-	document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+    playTrack('/assets/Techno_Syndrome.mp3');
+    document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
 
-	const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
-	const participantsContainer = document.getElementById('participants-container')!;
-	const gameTypeSelect = document.getElementById('game-type') as HTMLSelectElement;
-	const startTournamentButton = document.getElementById('start-tournament-button');
+    const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
+    const participantsContainer = document.getElementById('participants-container')!;
+    const gameTypeSelect = document.getElementById('game-type') as HTMLSelectElement;
+    const startTournamentButton = document.getElementById('start-tournament-button');
 
-	gameType = gameTypeSelect.value as 'pong' | 'tictactoe';
-	gameTypeSelect.addEventListener('change', () => {
-		gameType = gameTypeSelect.value as 'pong' | 'tictactoe';
-	});
+    gameType = gameTypeSelect.value as 'pong' | 'tictactoe';
+    gameTypeSelect.addEventListener('change', () => {
+        gameType = gameTypeSelect.value as 'pong' | 'tictactoe';
+    });
 
-	participantCountSelect.addEventListener('change', () => {
-		const count = parseInt(participantCountSelect.value);
-		const currentParticipants = participants.length;
-		if (count > currentParticipants) {
-			for (let i = currentParticipants; i < count; i++) {
-				participants.push(null);
-			}
-		} else {
-			participants.length = count;
-		}
-		renderParticipantBoxes(count, participantsContainer, currentUser);
-	});
+    participantCountSelect.addEventListener('change', () => {
+        const count = parseInt(participantCountSelect.value);
+        const currentParticipants = participants.length;
+        if (count > currentParticipants) {
+            const assignedGuestIds = new Set(participants.map(p => p?.is_guest ? p.id : null).filter(id => id !== null));
+            for (let i = currentParticipants; i < count; i++) {
+                const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
+                if (nextAvailableGuest) {
+                    participants.push({
+                        ...nextAvailableGuest,
+                        isGuest: true,
+                        is_guest: true,
+                        guestAlias: `guest${i}`
+                    });
+                    assignedGuestIds.add(nextAvailableGuest.id);
+                } else {
+                    participants.push(null);
+                }
+            }
+        } else {
+            participants.length = count;
+        }
+        renderParticipantBoxes(count, participantsContainer, currentUser);
+    });
 
-	renderParticipantBoxes(initialCount, participantsContainer, currentUser);
+    renderParticipantBoxes(initialCount, participantsContainer, currentUser);
 
-	startTournamentButton?.addEventListener('click', handleStartTournament);
+    startTournamentButton?.addEventListener('click', handleStartTournament);
 }
 
-async function handleStartTournament() {
-	const tournamentNameInput = document.getElementById('tournament-name') as HTMLInputElement;
-	const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
-	const name = tournamentNameInput.value.trim() || `${i18next.t('quickTournament')}`;
-	const selectedCount = parseInt(participantCountSelect.value);
+async function handleStartTournament() 
+{
+    const tournamentNameInput = document.getElementById('tournament-name') as HTMLInputElement;
+    const participantCountSelect = document.getElementById('participant-count') as HTMLSelectElement;
+    const name = tournamentNameInput.value.trim() || `${i18next.t('quickTournament')}`;
+    const selectedCount = parseInt(participantCountSelect.value);
 
-	const finalParticipantIds: number[] = [];
-	const guestAliasMap: { [key: number]: string } = {};
+    const finalParticipantIds: number[] = [];
+    const guestAliasMap: { [key: number]: string } = {};
 
-	for (let i = 0; i < selectedCount; i++) {
-		const participant = participants[i];
-		if (!participant || participant.id == null || participant.id < 0) {
-			alert(`${i18next.t('completeSelectionFor')} ${i + 1}.`);
-			return;
-		}
-		finalParticipantIds.push(participant.id);
-		if (participant.is_guest) {
-			guestAliasMap[participant.id] = participant.guestAlias || participant.username;
-		}
-	}
-	if (new Set(finalParticipantIds).size !== finalParticipantIds.length) {
-		alert(`${i18next.t('noDuplicateParticipants')}`);
-		return;
-	}
-	if (finalParticipantIds.length !== selectedCount) {
-		alert(`${i18next.t('errorExpectedParticipants', { count: selectedCount, processed: finalParticipantIds.length })}`);
-		return;
-	}
+    console.log("INICIANDO TORNEO");
 
-	try {
-		const response = await authenticatedFetch('/api/tournaments', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				name: name,
-				game: gameType,
-				participants: finalParticipantIds,
-				totalParticipants: selectedCount,
-				guestAliasMap: guestAliasMap
-			}),
-		});
-		const result = await response.json();
-		if (!response.ok) {
-			let errorMsg = result.message || i18next.t('errorCreatingTournament');
-			if (response.status === 400 && errorMsg?.includes("potencia de 2")) {
-				errorMsg = i18next.t('El número de participantes debe ser una potencia de 2 (4, 8, 16...).');
-			} else if (response.status === 400 && errorMsg?.includes("participantes insuficientes")) {
-				errorMsg = i18next.t('Se requieren al menos 4 participantes.');
-			} else if (response.status === 500 && errorMsg?.includes("invitados disponibles")) {
-				errorMsg = i18next.t('No hay suficientes usuarios invitados disponibles en la base de datos para completar el torneo.');
-			}
-			throw new Error(errorMsg);
-		}
+    for (let i = 0; i < selectedCount; i++) 
+    {
+        const participant = participants[i];
+        if (!participant || participant.id == null || participant.id < 0) 
+        {
+            alert(`${i18next.t('completeSelectionFor')} ${i + 1}.`);
+            return;
+        }
+        finalParticipantIds.push(participant.id);
+        if (participant.is_guest) 
+        {
+            guestAliasMap[participant.id] = participant.guestAlias || participant.username;
+        }
+    }
+    if (new Set(finalParticipantIds).size !== finalParticipantIds.length) 
+    {
+        alert(`${i18next.t('noDuplicateParticipants')}`);
+        return;
+    }
+    if (finalParticipantIds.length !== selectedCount) 
+    {
+        alert(`${i18next.t('errorExpectedParticipants', { count: selectedCount, processed: finalParticipantIds.length })}`);
+        return;
+    }
 
-		const tournamentId = result.tournament?.id;
+    console.log("FETCHEANDO TORNEO");
 
-		if (!tournamentId) {
-			alert("Error al procesar la respuesta del servidor (faltan datos).");
-			return;
-		}
+    try 
+    {
+        const response = await authenticatedFetch('/api/tournaments', 
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: name,
+                game: gameType,
+                participants: finalParticipantIds,
+                totalParticipants: selectedCount,
+                guestAliasMap: guestAliasMap
+            }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            let errorMsg = result.message || i18next.t('errorCreatingTournament');
+            if (response.status === 400 && errorMsg?.includes("potencia de 2")) {
+                errorMsg = i18next.t('El número de participantes debe ser una potencia de 2 (4, 8, 16...).');
+            } else if (response.status === 400 && errorMsg?.includes("participantes insuficientes")) {
+                errorMsg = i18next.t('Se requieren al menos 4 participantes.');
+            } else if (response.status === 500 && errorMsg?.includes("invitados disponibles")) {
+                errorMsg = i18next.t('No hay suficientes usuarios invitados disponibles en la base de datos para completar el torneo.');
+            }
+            throw new Error(errorMsg);
+        }
 
+        const tournamentId = result.tournament?.id;
 
-		const participantsForNextPage = finalParticipantIds.map(id => {
-			const originalParticipant = participants.find(p => p?.id === id);
-
-			let displayName = originalParticipant?.username || `Usuario ${id}`;
-			let realUsername = originalParticipant?.username || `Usuario ${id}`;
-			let isGuest = originalParticipant?.is_guest || false;
-
-			if (isGuest && guestAliasMap[id]) {
-				displayName = guestAliasMap[id];
-			} else if (isGuest) {
-				displayName = originalParticipant?.username || `Guest ${id}`;
-			}
+        if (!tournamentId) {
+            alert("Error al procesar la respuesta del servidor (faltan datos).");
+            return;
+        }
 
 
-			return {
-				id: id,
-				username: realUsername,
-				displayName: displayName,
-				is_guest: isGuest
-			};
-		});
+        const participantsForNextPage = finalParticipantIds.map(id => {
+            const originalParticipant = participants.find(p => p?.id === id);
+
+            let displayName = originalParticipant?.username || `Usuario ${id}`;
+            let realUsername = originalParticipant?.username || `Usuario ${id}`;
+            let isGuest = originalParticipant?.is_guest || false;
+
+            if (isGuest && guestAliasMap[id]) {
+                displayName = guestAliasMap[id];
+            } else if (isGuest) {
+                displayName = originalParticipant?.username || `Guest ${id}`;
+            }
 
 
-		localStorage.setItem('currentTournamentId', tournamentId.toString());
-		localStorage.setItem('currentTournamentParticipants', JSON.stringify(participantsForNextPage));
-		localStorage.setItem('currentTournamentGame', gameType);
-		localStorage.setItem('gameMode', 'TWO_PLAYERS');
+            return {
+                id: id,
+                username: realUsername,
+                displayName: displayName,
+                is_guest: isGuest
+            };
+        });
 
 
-		alert(i18next.t('tournamentCreatedSuccess', { name: name }));
+        localStorage.setItem('currentTournamentId', tournamentId.toString());
+        localStorage.setItem('currentTournamentParticipants', JSON.stringify(participantsForNextPage));
+        localStorage.setItem('currentTournamentGame', gameType);
+        localStorage.setItem('gameMode', 'TWO_PLAYERS');
 
-		participants = [];
-		allFriends = [];
-		availableGuests = [];
 
-		navigate(`/tournament-match/${tournamentId}`);
-	} catch (error) {
-		alert(`${i18next.t('errorCreatingTournament')}: ${(error as Error).message}`);
-	}
+        alert(i18next.t('tournamentCreatedSuccess', { name: name }));
+
+        participants = [];
+        allFriends = [];
+        availableGuests = [];
+
+        navigate(`/tournament-match/${tournamentId}`);
+    } catch (error) {
+        alert(`${i18next.t('errorCreatingTournament')}: ${(error as Error).message}`);
+    }
 }
