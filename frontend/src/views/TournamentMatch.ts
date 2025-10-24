@@ -101,7 +101,7 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
 				
 					</div>
 			</div>
-			<div id="pong">
+			<div id="pong" class="mb-8">
 			</div>
             <div id="bracket-container" class="w-full max-w-6xl text-center">
                 <p class="text-gray-400">(${i18next.t('bracketDisplayPending')})</p>

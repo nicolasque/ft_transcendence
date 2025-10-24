@@ -111,8 +111,11 @@ export function initializePongGame(
     matchId_Variatic?: number
 ): Promise<MatchResult> {
 	return new Promise((resolve) => {
+        const isTournamentMatch = matchId_Variatic !== undefined;
+        const mainContainerClass = isTournamentMatch ? '' : 'h-screen';
+
         container.innerHTML = `
-          <div class="h-screen w-full flex flex-col items-center justify-center p-4 text-white font-press-start">
+          <div class="${mainContainerClass} w-full flex flex-col items-center justify-center p-4 text-white font-press-start">
             <main class="relative w-full max-w-6xl">
                 <canvas id="pong-canvas" class="w-full block shadow-2xl shadow-cyan-400/50 border-4 border-cyan-400 bg-black"></canvas>
                 <div id="game-overlay" class="absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center bg-black bg-opacity-75 gap-4">
@@ -145,7 +148,6 @@ export function initializePongGame(
         let aiLastUpdateTime = 0;
         let aiTargetY: number | null = null;
 
-        const isTournamentMatch = matchId_Variatic !== undefined;
         if (isTournamentMatch) {
             matchId = matchId_Variatic;
         }
