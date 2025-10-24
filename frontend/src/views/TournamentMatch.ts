@@ -51,6 +51,83 @@ async function fetchTornamentMatch() {
 	}
 }
 
+function renderBracket(container: HTMLElement, matches: TournamentMatchInfo[], participants: ParticipantInfo[]): void {
+	if (!container) return;
+
+	// 1. Group matches by round
+	const rounds: { [key: number]: TournamentMatchInfo[] } = {};
+	let maxRound = 0;
+	matches.forEach(match => {
+		if (!rounds[match.round]) {
+			rounds[match.round] = [];
+		}
+		rounds[match.round].push(match);
+		if (match.round > maxRound) {
+			maxRound = match.round;
+		}
+	});
+
+	// 2. Generate HTML
+	let bracketHtml = '<div class="flex space-x-4 md:space-x-8 overflow-x-auto p-4">';
+
+	for (let i = 1; i <= maxRound; i++) {
+		const roundMatches = rounds[i] || [];
+		bracketHtml += `<div class="flex flex-col justify-around min-w-[200px]">`; // A column for each round
+
+		for (const match of roundMatches) {
+			const player1 = match.player_one;
+			const player2 = match.player_two;
+
+			const p1Name = player1 ? player1.displayName : `(${i18next.t('loading')}...)`;
+			const p2Name = player2 ? player2.displayName : `(${i18next.t('loading')}...)`;
+
+			const p1Score = match.match_status === 'finish' ? match.player_one_points : '-';
+			const p2Score = match.match_status === 'finish' ? match.player_two_points : '-';
+
+			const isP1Winner = match.match_status === 'finish' && match.player_one_points > match.player_two_points;
+			const isP2Winner = match.match_status === 'finish' && match.player_two_points > match.player_one_points;
+
+			bracketHtml += `
+                <div class="bg-gray-700 rounded-lg p-3 my-4 border-l-4 ${(isP1Winner || isP2Winner) ? 'border-cyan-400' : 'border-gray-500'}">
+                    <div class="flex justify-between items-center text-sm ${isP1Winner ? 'font-bold text-yellow-300' : ''}">
+                        <span class="truncate pr-2">${p1Name}</span>
+                        <span class="font-mono bg-gray-900 px-2 py-1 rounded">${p1Score}</span>
+                    </div>
+                    <div class="border-t border-gray-500 my-2"></div>
+                    <div class="flex justify-between items-center text-sm ${isP2Winner ? 'font-bold text-yellow-300' : ''}">
+                        <span class="truncate pr-2">${p2Name}</span>
+                        <span class="font-mono bg-gray-900 px-2 py-1 rounded">${p2Score}</span>
+                    </div>
+                </div>
+            `;
+		}
+
+		bracketHtml += `</div>`; // Close round column
+	}
+
+	// Handle the final winner display
+	const finalMatch = rounds[maxRound]?.find(m => m.match_status === 'finish');
+	if (finalMatch) {
+		const winner = finalMatch.player_one_points > finalMatch.player_two_points ? finalMatch.player_one : finalMatch.player_two;
+		if (winner) {
+			bracketHtml += `
+                <div class="flex flex-col justify-center items-center min-w-[200px] text-center">
+                    <div class="bg-yellow-400 text-black p-4 rounded-lg">
+                        <p class="text-xs uppercase font-bold">${i18next.t('theWinnerIs')}</p>
+                        <p class="text-lg font-bold truncate">${winner.displayName}</p>
+                        <p class="text-4xl mt-2">🏆</p>
+                    </div>
+                </div>
+              `;
+		}
+	}
+
+
+	bracketHtml += '</div>'; // Close flex container
+	container.innerHTML = bracketHtml;
+}
+
+
 export async function renderTournamentMatch(appElement: HTMLElement): Promise<void> {
 	if (!appElement) return;
 
@@ -104,7 +181,6 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
 			<div id="pong" class="mb-8">
 			</div>
             <div id="bracket-container" class="w-full max-w-6xl text-center">
-                <p class="text-gray-400">(${i18next.t('bracketDisplayPending')})</p>
                 </div>
 
             <button id="back-to-start" class="mt-8 px-6 py-3 bg-gray-600 rounded hover:bg-gray-500">
@@ -131,6 +207,7 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
 
 
 	renderTournamentScores(document.getElementById('tournament-status-text') as HTMLElement, tournamentMatchs);
+	renderBracket(document.getElementById('bracket-container') as HTMLElement, tournamentMatchs, participants);
 
 	pongElement = document.getElementById('pong');
 	// initializePongGame(pongElement);
@@ -178,12 +255,15 @@ function asingDisplayNamesToParticipants(TournamentMatchInfo: TournamentMatchInf
 async function manageTournamentState(participants: ParticipantInfo[]) {
 	const pongContainer = document.getElementById('pong') as HTMLElement;
 	const statusContainer = document.getElementById('tournament-status-text') as HTMLElement;
+	const bracketContainer = document.getElementById('bracket-container') as HTMLElement;
 
 	if (!pongContainer || !statusContainer) return;
 
 	let matches = await fetchTornamentMatch();
 	matches = asingDisplayNamesToParticipants(matches, participants);
 	renderTournamentScores(statusContainer, matches); // Muestra puntuaciones actualizadas
+	renderBracket(bracketContainer, matches, participants);
+
 
 	const nextMatch = matches.find(m => m.match_status === 'pending' && m.player_one && m.player_two);
 

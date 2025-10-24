@@ -131,6 +131,7 @@ function handleParticipantTypeChange(event: Event) {
 
 		console.log(`Caja ${index}: Cambiado tipo a ${isGuest ? 'Invitado' : 'Amigo'}`);
 
+		// Manually toggle UI elements for instant feedback
 		document.getElementById(`friend-selector-${index}`)?.classList.toggle('hidden', isGuest);
 		document.getElementById(`guest-alias-input-${index}`)?.classList.toggle('hidden', !isGuest);
 
@@ -145,43 +146,22 @@ function handleParticipantTypeChange(event: Event) {
 
 			if (nextAvailableGuest) {
 				const aliasInput = box.querySelector('.participant-input-guest-alias') as HTMLInputElement;
-				const currentAlias = aliasInput.value.trim() || `${i18next.t('guest')} ${index + 1}`; // Mantener alias si ya había
+				const currentAlias = aliasInput.value.trim() || `${i18next.t('guest')} ${index + 1}`;
 				participants[index] = {
-					...nextAvailableGuest, // Copia datos del guest real
-					isGuest: true,         // Flag frontend
-					is_guest: true,        // Flag BD
-					guestAlias: currentAlias // Guardar alias
+					...nextAvailableGuest,
+					isGuest: true,
+					is_guest: true,
+					guestAlias: currentAlias
 				};
-				console.log(`Caja ${index}: Asignado automáticamente guest ID ${nextAvailableGuest.id} (${nextAvailableGuest.username})`);
 			} else {
-				// No quedan guests disponibles
 				alert(i18next.t('notEnoughGuests'));
-				// Resetear radio a 'Amigo' o dejar el slot vacío y mostrar error
-				(target as HTMLInputElement).checked = false; // Desmarcar 'Invitado'
-				const friendRadio = box.querySelector(`input[name="participant-${index}-type"][value="friend"]`) as HTMLInputElement;
-				if (friendRadio) friendRadio.checked = true; // Marcar 'Amigo' de nuevo
-				document.getElementById(`friend-selector-${index}`)?.classList.remove('hidden');
-				document.getElementById(`guest-alias-input-${index}`)?.classList.add('hidden');
-				participants[index] = null; // Dejar slot vacío
-				console.warn(`Caja ${index}: No se encontraron guests disponibles.`);
-			}
-			// Limpiar selección de amigo si existía
-			(box.querySelector('.participant-select-friend') as HTMLSelectElement).value = "";
-
-		} else { // Cambiando a Amigo
-			(box.querySelector('.participant-input-guest-alias') as HTMLInputElement).value = "";
-			const friendSelect = box.querySelector('.participant-select-friend') as HTMLSelectElement;
-			const selectedFriendId = friendSelect ? parseInt(friendSelect.value) : NaN;
-			if (!isNaN(selectedFriendId) && selectedFriendId > 0) {
-				const selectedFriend = allFriends.find(f => f.id === selectedFriendId);
-				participants[index] = selectedFriend ? { ...selectedFriend, isGuest: false, is_guest: false } : null;
-			} else {
 				participants[index] = null;
 			}
-		}
+			renderParticipantBoxes(participants.length, participantsContainer, currentUser);
 
-		// Re-renderizar TODAS las cajas para actualizar la disponibilidad y mostrar guest asignado
-		renderParticipantBoxes(participants.length, participantsContainer, currentUser);
+		} else { // Switching to Friend
+			participants[index] = null;
+		}
 
 	} catch (error) {
 		console.error("Error en handleParticipantTypeChange:", error);
@@ -205,6 +185,8 @@ function handleFriendSelectionChange(event: Event) {
 		} else {
 			participants[index] = null;
 		}
+        
+        renderParticipantBoxes(participants.length, participantsContainer, currentUser);
 
 		console.log("Array completo tras selección amigo:", JSON.parse(JSON.stringify(participants)));
 
