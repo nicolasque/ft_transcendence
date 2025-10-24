@@ -70,7 +70,7 @@ function renderParticipantBoxes(count: number, container: HTMLElement, currentUs
             `;
 		} else {
 			const currentParticipant = participants[i];
-			const isGuestSelected = currentParticipant?.isGuest === true || (!currentParticipant?.hasOwnProperty('isGuest') && currentParticipant?.is_guest === true);
+			const isGuestSelected = currentParticipant ? (currentParticipant.isGuest || currentParticipant.is_guest) : true;
 			const selectedFriendId = (!isGuestSelected && currentParticipant) ? currentParticipant.id : '';
 			// No necesitamos selectedGuestId aquí porque no hay <select>
 			const guestAliasValue = isGuestSelected ? (currentParticipant?.guestAlias || '') : ''; // Recuperar alias si ya existe
@@ -267,6 +267,21 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
 	if (!Array.isArray(participants) || participants.length === 0 || !participants[0] || participants[0].id !== currentUser.id) {
 		participants = new Array(initialCount).fill(null);
 		participants[0] = { ...currentUser, isGuest: false, is_guest: false };
+
+		// Pre-populate with guests
+		const assignedGuestIds = new Set<number>();
+		for (let i = 1; i < initialCount; i++) {
+			const nextAvailableGuest = availableGuests.find(guest => !assignedGuestIds.has(guest.id));
+			if (nextAvailableGuest) {
+				participants[i] = {
+					...nextAvailableGuest,
+					isGuest: true,
+					is_guest: true,
+					guestAlias: `${i18next.t('guest')} ${i + 1}`
+				};
+				assignedGuestIds.add(nextAvailableGuest.id);
+			}
+		}
 	} else {
 		while (participants.length < initialCount) participants.push(null);
 		if (participants.length > initialCount) participants.length = initialCount;
