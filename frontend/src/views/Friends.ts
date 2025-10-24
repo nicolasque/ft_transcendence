@@ -8,7 +8,9 @@ interface User {
     username: string;
     email: string;
     elo: number;
+	status: string;
     avatar?: string;
+	is_guest: boolean;
 }
 
 interface FriendRequest extends User {
@@ -62,8 +64,8 @@ export function renderFriends(appElement: HTMLElement):void  {
                 <div id="chat-history" class="flex-grow overflow-y-auto mb-4 p-2 bg-gray-900 rounded"></div>
                 <div class="flex flex-shrink-0">
                     <input id="chat-input" type="text" class="flex-grow bg-gray-700 p-2 rounded text-white mr-2">
-                     <button id="send-chat-btn" class="relative w-20 h-10">
-                        <img src="${i18next.t('img.send')}" alt="${i18next.t('send')}" class="absolute inset-0 w-full h-full object-contain">
+                    <button id="send-chat-btn" class="relative w-20 h-10">
+						<span class="text-2xl" role="img" aria-hidden="true">➡️</span>
                     </button>
                 </div>
             </div>
@@ -202,7 +204,9 @@ export function renderFriends(appElement: HTMLElement):void  {
             const friends: User[] = await authenticatedFetch('/api/friends').then(res => res.json());
             friendsContainer.innerHTML = friends.length > 0 ? friends.map(friend => `
                 <div class="flex flex-col items-center text-white p-2 hover:bg-gray-800 rounded-lg mb-2">
-                    <span class="font-bold text-2xl truncate" style="max-width: 200px;">${friend.username}</span>
+                    <span class="font-bold text-2xl truncate" style="max-width: 200px;">${friend.username}
+					<div class="text-sm text-gray-400" id="online-status-">${friend.status}</div>
+					</span>
                     <div class="flex gap-2 mt-2">
                         <button class="chat-btn" data-user-id="${friend.id}" data-username="${friend.username}"><img src="${i18next.t('img.chat')}" alt="${i18next.t('chat')}" class="h-8"></button>
                         <button class="play-btn" data-user-id="${friend.id}" data-username="${friend.username}"><img src="/assets/PvP.png" class="h-8"></button>
@@ -288,7 +292,8 @@ export function renderFriends(appElement: HTMLElement):void  {
                 user.id !== currentUser.id &&
                 !friendIds.has(user.id) &&
                 !requestIds.has(user.id) &&
-                !sentRequestIds.has(user.id)
+                !sentRequestIds.has(user.id) &&
+				user.is_guest === false
             );
 
             usersContainer.innerHTML = otherUsers.map((user: User) => `

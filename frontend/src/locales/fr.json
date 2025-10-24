@@ -129,6 +129,8 @@
 	"errorExpectedParticipants": "Erreur: Attendu {{count}} participants mais obtenu {{processed}}.",
 	"tournamentCreatedSuccess": "Tournoi \"{{name}}\" créé avec succès !",
 	"errorCreatingTournament": "Erreur lors de la création du tournoi",
+	"dontHaveAcount": "Si vous n'avez pas encore de compte, créez-en un.",
+
 
 	"img": {
 		"login": "/assets/fr/login_fr.png",

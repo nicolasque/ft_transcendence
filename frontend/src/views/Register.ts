@@ -45,7 +45,7 @@ export function renderRegister(appElement: HTMLElement): void
 				<img src="/assets/logo.gif" alt="Game Logo" class="w-full max-w-sm md:max-w-5xl mt-20 md:mt-28">
 			</button>
 		</div>
-		<div class="w-full md:max-w-4xl mt-10 md:mt-40">
+		<div class="w-full md:max-w-4xl mt-10 md:mt-40 font-press-start">
 			<form id="registerForm" class="bg-gray-800 bg-opacity-50 shadow-md rounded-xl px-6 py-8 md:px-16 md:pt-12 md:pb-16 mb-8">
 				<div class="mb-6 md:mb-9">
 					<label class="block text-white text-lg md:text-2xl font-bold mb-2 md:mb-4" for="username">${i18next.t('username')}</label>

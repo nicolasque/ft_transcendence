@@ -129,6 +129,7 @@
 	"errorExpectedParticipants": "Error: Expected {{count}} participants but got {{processed}}.",
 	"tournamentCreatedSuccess": "Tournament \"{{name}}\" created successfully!",
 	"errorCreatingTournament": "Error creating tournament",
+	"dontHaveAcount": "If you dont have an acount singup",
 
 	"img": {
 		"login": "/assets/en/login.png",
