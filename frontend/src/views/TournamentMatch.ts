@@ -164,8 +164,6 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
 	// --- Renderizado Básico ---
 	appElement.innerHTML = `
         <div class="h-screen flex flex-col items-center p-4 text-white font-press-start overflow-y-auto">
-            <h1 class="text-black text-3xl mb-4 mt-8">${i18next.t('tournamentId')} ${tournamentId}</h1>
-            <h2 class="text-black text-2xl mb-8">${i18next.t('game')}: ${gameType === 'pong' ? 'Pong' : 'Tic Tac Toe'}</h2>
 			<div class="flex flex-col items-center w-full">
 				<main class="flex flex-col items-center w-full">
 					<div id="pong" class="mb-8">
@@ -229,8 +227,6 @@ async function manageTournamentState(participants: ParticipantInfo[]) {
     if (nextMatch) {
         pongContainer.innerHTML = `
             <div class="text-center">
-                <h3 class="text-black text-2xl mb-4">${i18next.t('nextMatch')}</h3>
-                <p class="text-black text-xl mb-6">${nextMatch.player_one!.displayName} vs ${nextMatch.player_two!.displayName}</p>
                 <button id="play-match-btn" class="px-6 py-3 bg-green-600 rounded hover:bg-green-500 transition-colors">${i18next.t('playMatch')}</button>
             </div>
         `;
