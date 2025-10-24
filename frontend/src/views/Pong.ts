@@ -123,12 +123,14 @@ export function initializePongGame(
                     <button id="start-button" class="px-8 py-4 text-2xl rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-cyan-400 text-gray-900 hover:bg-white">${i18next.t('startGame')}</button>
                 </div>
             </main>
-            <button id="homeButton" class="mt-8 px-8 py-4 text-lg rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-gray-700 text-white hover:bg-gray-600">${i18next.t('return')}</button>
+            ${!isTournamentMatch ? `<button id="homeButton" class="mt-8 px-8 py-4 text-lg rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-110 bg-gray-700 text-white hover:bg-gray-600">${i18next.t('return')}</button>` : ''}
           </div>
             `;
 
         playTrack('/assets/DangerZone.mp3');
-        document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+        if (!isTournamentMatch) {
+            document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+        }
 
         const canvas = container.querySelector('#pong-canvas') as HTMLCanvasElement;
         const context = canvas.getContext('2d')!;

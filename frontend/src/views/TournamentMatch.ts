@@ -164,20 +164,22 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
 	// --- Renderizado Básico ---
 	appElement.innerHTML = `
         <div class="h-screen flex flex-col items-center p-4 text-white font-press-start overflow-y-auto">
+			<button id="homeButton" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
+				<img src="/assets/logo.gif" alt="Game Logo" class="w-full max-w-sm md:max-w-5xl">
+            </button>
 			<div class="flex flex-col items-center w-full">
 				<main class="flex flex-col items-center w-full">
 					<div id="pong" class="mb-8">
 					</div>
 					<div id="bracket-container" class="w-full max-w-6xl text-center mb-8">
 					</div>
-					<button id="back-to-start" class="mt-8 px-6 py-3 bg-gray-600 rounded hover:bg-gray-500">
-						${i18next.t('returnToMainMenu')}
-					</button>
 				</main>
 	  		</div>
         </div>
     `;
 
+	document.getElementById('homeButton')?.addEventListener('click', () => navigate('/start'));
+	
 	document.getElementById('back-to-start')?.addEventListener('click', () => {
 		localStorage.removeItem('currentTournamentId');
 		localStorage.removeItem('currentTournamentParticipants');

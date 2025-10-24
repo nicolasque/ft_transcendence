@@ -92,9 +92,6 @@ function renderParticipantBoxes(count: number, container: HTMLElement, currentUs
 
                 <div id="guest-alias-input-${i}" class="${!isGuestSelected ? 'hidden' : ''}">
                      <input type="text" value="${guestAliasValue}" name="participant-${i}-guest-alias" class="participant-input-guest-alias bg-gray-700 p-2 rounded text-white w-full" placeholder="guest${i}" data-index="${i}">
-                     <p id="assigned-guest-info-${i}" class="text-xs text-gray-400 mt-1">
-                        ${(isGuestSelected && currentParticipant) ? `(Asignado: ${currentParticipant.username})` : ''}
-                     </p>
                 </div>
             `;
 		}
@@ -230,7 +227,7 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
     }
 
     appElement.innerHTML = `
-    <div class="h-screen flex flex-col items-center p-4 md:p-8 overflow-y-auto font-press-start text-white">
+    <div class="h-screen flex flex-col items-center p-4 md:p-4 overflow-y-auto font-press-start text-white">
         <div class="w-full flex justify-center mb-8 flex-shrink-0">
              <button id="homeButton" class="focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
                 <img src="/assets/logo.gif" alt="Game Logo" class="w-full max-w-sm md:max-w-2xl">
@@ -257,13 +254,13 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
                 </select>
             </div>
         </form>
-        <div id="participants-container" class="w-full max-w-lg mb-8 flex-shrink-0">
-            </div>
-        <div class="mt-auto md:mt-8 flex-shrink-0 py-4">
+		<div class="mt-auto md:mt-8 flex-shrink-0 py-4">
             <button id="start-tournament-button" class="relative w-64 h-[60px] md:w-80 md:h-[75px] cursor-pointer transform hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-4 focus:ring-cyan-300 rounded-lg">
                 <img src="${i18next.t('img.accept')}" alt="${i18next.t('accept')}" class="absolute inset-0 w-full h-full object-contain">
             </button>
         </div>
+        <div id="participants-container" class="w-full max-w-lg mb-8 flex-shrink-0">
+            </div>
     </div>
     `;
 
