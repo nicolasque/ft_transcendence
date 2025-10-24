@@ -112,11 +112,9 @@ export function renderFriends(appElement: HTMLElement):void  {
             const response = await authenticatedFetch(`/api/chat/private/${withUserId}`);
             const messages: Message[] = await response.json();
 
-            const oddIdMessages = messages.filter(msg => msg.id % 2 !== 0);
-
             chatHistory.innerHTML = '';
 
-            oddIdMessages.filter(msg => !blockedUserIds.has(msg.sender_id)).forEach(msg => {
+            messages.filter(msg => !blockedUserIds.has(msg.sender_id)).forEach(msg => {
                 const isCurrentUser = msg.sender_id === currentUser.id;
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `p-2 my-1 rounded ${isCurrentUser ? 'bg-blue-800 text-right' : 'bg-gray-700 text-left'}`;
