@@ -123,7 +123,7 @@ export async function renderProfile(appElement: HTMLElement): Promise<void> {
 			</button>
 		</div>
 
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl">
+		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full max-w-7xl font-press-start">
 			<div class="col-span-1 space-y-8">
 				<div class="bg-gray-800 bg-opacity-75 p-6 rounded-lg border-2 border-cyan-400 shadow-lg">
 					<div class="flex flex-col items-center">

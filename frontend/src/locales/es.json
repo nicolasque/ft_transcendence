@@ -129,6 +129,8 @@
 	"errorExpectedParticipants": "Error: Se esperaban {{count}} participantes pero se procesaron {{processed}}.",
 	"tournamentCreatedSuccess": "¡Torneo \"{{name}}\" creado con éxito!",
 	"errorCreatingTournament": "Error al crear el torneo",
+	"dontHaveAcount": "Si no tienes una cuenta crea una",
+
 
 	"img": {
 		"login": "/assets/es/login_es.png",

@@ -250,7 +250,6 @@ export async function renderTournament(appElement: HTMLElement): Promise<void> {
                 <label for="game-type" class="block text-lg mb-2">${i18next.t('game')}:</label>
                 <select name="game-type" id="game-type" class="w-full bg-gray-700 p-2 rounded text-white">
                     <option value="pong">Pong</option>
-                    <option value="tictactoe">Tic Tac Toe</option>
                 </select>
             </div>
         </form>
