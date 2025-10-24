@@ -161,34 +161,22 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
 		return;
 	}
 
-	console.log(`Mostrando torneo ${tournamentId} (${gameType}) con participantes:`, participants);
-
 	// --- Renderizado Básico ---
 	appElement.innerHTML = `
         <div class="h-screen flex flex-col items-center p-4 text-white font-press-start">
             <h1 class="text-black text-3xl mb-4">${i18next.t('tournamentId')} ${tournamentId}</h1>
             <h2 class="text-black text-2xl mb-8">${i18next.t('game')}: ${gameType === 'pong' ? 'Pong' : 'Tic Tac Toe'}</h2>
-
-
 			<div class="flex flex-col items-center w-full">
-		<main class="flex flex-col items-center w-full">
-			<div class="mb-8 w-full max-w-4xl bg-gray-800 p-4 rounded border-2 border-cyan-400">
-				<div id="tournament-status" class="text-lg">
-					${i18next.t('tournamentStatus')}: <span id="tournament-status-text">${i18next.t('loading')}...</span>
-				
+				<main class="flex flex-col items-center w-full">
+					<div id="pong" class="mb-8">
 					</div>
-			</div>
-			<div id="pong" class="mb-8">
-			</div>
-            <div id="bracket-container" class="w-full max-w-6xl text-center">
-                </div>
-
-            <button id="back-to-start" class="mt-8 px-6 py-3 bg-gray-600 rounded hover:bg-gray-500">
-                ${i18next.t('returnToMainMenu')}
-            </button>
-		</main>
-	  </div>
-			</div>
+					<div id="bracket-container" class="w-full max-w-6xl text-center mb-8">
+					</div>
+					<button id="back-to-start" class="mt-8 px-6 py-3 bg-gray-600 rounded hover:bg-gray-500">
+						${i18next.t('returnToMainMenu')}
+					</button>
+				</main>
+	  		</div>
         </div>
     `;
 
@@ -199,37 +187,13 @@ export async function renderTournamentMatch(appElement: HTMLElement): Promise<vo
 		navigate('/start');
 	});
 
-
-
 	let tournamentMatchs = await fetchTornamentMatch();
 	tournamentMatchs = asingDisplayNamesToParticipants(tournamentMatchs, participants);
-	console.log(tournamentMatchs);
 
-
-	renderTournamentScores(document.getElementById('tournament-status-text') as HTMLElement, tournamentMatchs);
 	renderBracket(document.getElementById('bracket-container') as HTMLElement, tournamentMatchs, participants);
 
 	pongElement = document.getElementById('pong');
-	// initializePongGame(pongElement);
 	manageTournamentState(participants);
-}
-
-async function renderTournamentScores(appElement: HTMLElement, tournamentMatchs: TournamentMatchInfo[]): Promise<void> {
-	if (!appElement) {
-		console.error("App element no encontrado para renderizar puntuaciones del torneo.");
-		return;
-	}
-
-
-	appElement.innerHTML = `
-		<div class="puntuaciones-container">
-			<h3 class="text-white text-xl mb-4">${i18next.t('tournamentScores')}:</h3>
-			<ul class="list-disc list-inside space-y-1">
-				${tournamentMatchs.map(match => `<li>${match.player_one?.displayName || 'N/A'} vs ${match.player_two?.displayName || 'N/A'} - ${match.player_one_points} : ${match.player_two_points}</li>`).join('')}
-			</ul>
-		</div>
-	`;
-
 }
 
 function asingDisplayNamesToParticipants(TournamentMatchInfo: TournamentMatchInfo[], participants: ParticipantInfo[]): TournamentMatchInfo[] {
@@ -250,20 +214,15 @@ function asingDisplayNamesToParticipants(TournamentMatchInfo: TournamentMatchInf
 	return TournamentMatchInfo;
 }
 
-
-
 async function manageTournamentState(participants: ParticipantInfo[]) {
 	const pongContainer = document.getElementById('pong') as HTMLElement;
-	const statusContainer = document.getElementById('tournament-status-text') as HTMLElement;
 	const bracketContainer = document.getElementById('bracket-container') as HTMLElement;
 
-	if (!pongContainer || !statusContainer) return;
+	if (!pongContainer) return;
 
 	let matches = await fetchTornamentMatch();
 	matches = asingDisplayNamesToParticipants(matches, participants);
-	renderTournamentScores(statusContainer, matches); // Muestra puntuaciones actualizadas
 	renderBracket(bracketContainer, matches, participants);
-
 
 	const nextMatch = matches.find(m => m.match_status === 'pending' && m.player_one && m.player_two);
 
@@ -278,12 +237,11 @@ async function manageTournamentState(participants: ParticipantInfo[]) {
 
 		document.getElementById('play-match-btn')?.addEventListener('click', async () => {
 			const result = await initializePongGame(pongContainer, nextMatch.player_one!, nextMatch.player_two!, nextMatch.id);
-
 			manageTournamentState(participants);
 		});
 
 	} else {
-		const finalMatch = matches.find(m => !m.next_match_id); // La final es la que no tiene `next_match_id`
+		const finalMatch = matches.find(m => !m.next_match_id);
 		if (finalMatch && finalMatch.match_status === 'finish') {
 			const winner = finalMatch.player_one_points > finalMatch.player_two_points ? finalMatch.player_one : finalMatch.player_two;
 			pongContainer.innerHTML = `

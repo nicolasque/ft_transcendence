@@ -320,8 +320,6 @@ async function handleStartTournament()
     const finalParticipantIds: number[] = [];
     const guestAliasMap: { [key: number]: string } = {};
 
-    console.log("INICIANDO TORNEO");
-
     for (let i = 0; i < selectedCount; i++) 
     {
         const participant = participants[i];
@@ -346,8 +344,6 @@ async function handleStartTournament()
         alert(`${i18next.t('errorExpectedParticipants', { count: selectedCount, processed: finalParticipantIds.length })}`);
         return;
     }
-
-    console.log("FETCHEANDO TORNEO");
 
     try 
     {

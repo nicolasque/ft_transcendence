@@ -9,6 +9,8 @@ services:
       - .secrets/ssl:/etc/nginx/ssl:ro
     networks:
       - default
+    env_file:
+      - .secrets/.env
     depends_on:
       backend:
         condition: service_healthy
@@ -25,6 +27,8 @@ services:
       - "9000"
     ports:
       - "9000:9000" #Eliminar esta linea en produccion, esto me deja conectarme desde fuera del doker
+    env_file:
+      - .secrets/.env
     environment:
       - CLAVE_PRIVADA=${CLAVE_PRIVADA}
       - EXPIRE_IN=${EXPIRE_IN}
@@ -48,6 +52,8 @@ services:
         - /app/node_modules # crea un volumén gestionado por docker dónde se almacena el cotenido de /app/node_modules -> así el contenedor no tiene que hacer 'npm install' cada vez que levantamos los contenedores
       expose:
         - "3000"
+      env_file:
+      - .secrets/.env
       healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:3000"]
         interval: 30s
