@@ -1,6 +1,6 @@
-*.txt
-/backend/uploads/
-node_modules/
-*.sqlite
-.env
-#.secrets
+# *.txt
+# /backend/uploads/
+# node_modules/
+# *.sqlite
+# .env
+# .secrets
